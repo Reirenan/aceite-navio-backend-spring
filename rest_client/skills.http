@@ -1,0 +1,28 @@
+GET {{baseUrl}}/api/skills
+
+###
+
+GET {{baseUrl}}/api/skills/1
+
+###
+
+POST {{baseUrl}}/api/skills
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjb250YXRvQHRyZWluYXdlYi5jb20uYnIiLCJpYXQiOjE3MDg2NTg4MjgsImV4cCI6MTcwODY2MjQyOH0.iVEqX-fwsl4scLLHNNFLh-m_QQhW-yhOIZ9Z-F_pac1Ohe8CUNSqcpyYOUK_qZ_HDc22W8YHacHcUk8RZqMpXA
+
+{
+    "name": "Spring"
+}
+
+###
+
+PUT {{baseUrl}}/api/skills/1
+Content-Type: application/json
+
+{
+    "name": "Java"
+}
+
+###
+
+DELETE  {{baseUrl}}/api/skills/11

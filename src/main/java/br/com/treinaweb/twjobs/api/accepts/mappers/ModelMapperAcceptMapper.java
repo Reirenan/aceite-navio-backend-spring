@@ -1,0 +1,32 @@
+package br.com.treinaweb.twjobs.api.accepts.mappers;
+
+
+import br.com.treinaweb.twjobs.api.accepts.dtos.AcceptRequest;
+import br.com.treinaweb.twjobs.api.accepts.dtos.AcceptResponse;
+import br.com.treinaweb.twjobs.core.models.Accept;
+import br.com.treinaweb.twjobs.core.models.Aceite;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Component;
+
+
+
+@Component
+@RequiredArgsConstructor
+public class ModelMapperAcceptMapper implements AcceptMapper {
+
+    private final ModelMapper modelMapper;
+
+    @Override
+    public AcceptResponse toAcceptResponse(Accept accept) {
+        return modelMapper.map(accept, AcceptResponse.class);
+    }
+
+    @Override
+    public Accept toAccept(@Valid AcceptRequest acceptRequest) {
+        return modelMapper.map(acceptRequest, Accept.class);
+    }
+
+}
+
