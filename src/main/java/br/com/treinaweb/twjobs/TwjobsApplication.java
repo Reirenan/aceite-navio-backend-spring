@@ -8,6 +8,5 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class TwjobsApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(TwjobsApplication.class, args);
-
 	}
 }
