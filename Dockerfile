@@ -1,4 +1,11 @@
+FROM maven:3.9-ibm-semeru-21-jammy AS builder
+WORKDIR /app
+COPY . /app
+RUN mvn clean package
+RUN ls /app/target
+
 FROM openjdk:21
-EXPOSE 9090
-ADD target/docker-demo-app-two.jar docker-demo-app-two.jar
+EXPOSE 8080
+COPY .env .
+COPY --from=builder /app/target/*.jar docker-demo-app-two.jar
 ENTRYPOINT ["java", "-jar", "/docker-demo-app-two.jar"]

@@ -1,70 +1,39 @@
-version: '3.8'
-
 services:
+  front:
+    build:
+      context: ./aceite-tecnico-frontend
+    image: aceite-tecnico-frontend:v1
+    container_name: aceite-tecnico-front
+    ports:
+      - 8100:80
+    networks:
+      - aceite-net
+
+  backend:
+    build:
+      context: ./aceite-tecnico-backend
+    image: aceite-tecnico-backend:v1
+    container_name: aceite-tecnico-back
+    ports:
+      - 9090:8080
+    networks:
+      - aceite-net
+
   mysql:
-    image: mysql:8.0
-    container_name: mysql-db
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: porto
+    image: mysql:9
+    container_name: aceite-tecnico-db
     ports:
-      - "3307:3306"
+      - 3306:3306
     volumes:
-      - mysql_data:/var/lib/mysql
-
-  app:
-    build: .
-    container_name: spring-app
-    ports:
-      - "8080:8080"
-    depends_on:
-      - mysql
-    env_file:
-      - .env
+      - data:/var/lib/mysql
     environment:
-      # Banco de dados
-      SPRING_DATASOURCE_URL: ${DB_URL_DOCKER}
-      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: ${DB_DRIVER_CLASS_NAME}
-      SPRING_JPA_DATABASE_PLATFORM: ${DB_PLATFORM}
-
-      # Upload
-      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: ${SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE}
-      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: ${SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE}
-
-      # E-mail
-      SPRING_MAIL_HOST: ${MAIL_HOST}
-      SPRING_MAIL_PORT: ${MAIL_PORT}
-      SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
-      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
-      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH}
-      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: ${MAIL_SMTP_STARTTLS_ENABLE}
-
-      # JPA
-      SPRING_JPA_SHOW_SQL: ${JPA_SHOW_SQL}
-      SPRING_JPA_MERGE_ENTITY_COPY_OBSERVER: ${JPA_MERGE_ENTITY_COPY_OBSERVER}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: ${JPA_HIBERNATE_DDL_AUTO}
-      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: ${JPA_HIBERNATE_FORMAT_SQL}
-
-      # Paginação
-      SPRING_DATA_WEB_PAGEABLE_ONE_INDEXED_PARAMETERS: ${PAGEABLE_ONE_INDEXED_PARAMETERS}
-      SPRING_DATA_WEB_PAGEABLE_DEFAULT_PAGE_SIZE: ${PAGEABLE_DEFAULT_PAGE_SIZE}
-      SPRING_DATA_WEB_PAGEABLE_MAX_PAGE_SIZE: ${PAGEABLE_MAX_PAGE_SIZE}
-
-      # JWT
-      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
-      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
-      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
-
-      # Disco
-      DISCO_RAIZ: ${DISCO_RAIZ}
-      DISCO_DIRETORIO_FOTOS: ${DISCO_DIRETORIO_FOTOS}
-
-      # Swagger
-      SPRINGDOC_SWAGGER_UI_PATH: ${SPRINGDOC_SWAGGER_UI_PATH}
-      SPRINGDOC_SWAGGER_UI_OPERATIONSSORTER: ${SPRINGDOC_SWAGGER_UI_OPERATIONSSORTER}
+      MYSQL_DATABASE: porto
+      MYSQL_ROOT_PASSWORD: root
+    networks:
+      - aceite-net
 
 volumes:
-  mysql_data:
+  data:
+
+networks:
+  aceite-net:
