@@ -11,7 +11,7 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://192.168.31.13:8100/")
+                .allowedOrigins("https://aceite-navio.uema.br")
                 .allowedMethods("GET", "POST", "DELETE", "PUT");
     }
 }
