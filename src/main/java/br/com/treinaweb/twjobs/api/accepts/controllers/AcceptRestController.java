@@ -5,6 +5,7 @@ import br.com.treinaweb.twjobs.api.accepts.assemblers.AcceptAssembler;
 import br.com.treinaweb.twjobs.api.accepts.dtos.AcceptRequest;
 import br.com.treinaweb.twjobs.api.accepts.dtos.AcceptResponse;
 import br.com.treinaweb.twjobs.api.accepts.mappers.AcceptMapper;
+import br.com.treinaweb.twjobs.api.bercos.dtos.BercoResponse;
 import br.com.treinaweb.twjobs.api.file.FileManagerController;
 import br.com.treinaweb.twjobs.core.enums.Role;
 import br.com.treinaweb.twjobs.core.enums.VeriStatus;
@@ -26,9 +27,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
@@ -78,46 +82,40 @@ public class AcceptRestController {
         return acceptRepository.countAllAccepts();
     }
 
+    @GetMapping("/sem-paginacao")
+    public CollectionModel<EntityModel<AcceptResponse>> findAllSemPaginacao() {
+        List<AcceptResponse> lista = acceptRepository.findAll(Sort.by(Sort.Direction.DESC, "id")).stream()
+                .map(acceptMapper::toAcceptResponse)
+                .collect(Collectors.toList());
+        return acceptAssembler.toCollectionModel(lista);
+    }
 
-    //"@PageableDefault(value = 7)" tamanho local para o tamanho da paginação. Deve ser igual ou menor ao valor encontrado no "application.properties"
     @GetMapping
-    public CollectionModel<EntityModel<AcceptResponse>> findAll(@PageableDefault(value = 15) Pageable pageable) {
+    public CollectionModel<EntityModel<AcceptResponse>> findAll(@PageableDefault(size = 15) Pageable pageable) {
 
-        User user = securityService.getCurrentUser();
-        Long userId = user.getId();
+        Pageable ordenado = PageRequest.of(pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by("id").descending());
 
+        var accepts = acceptRepository.findAll(ordenado)
+                .map(acceptMapper::toAcceptResponse);
 
-//        if (user.getRole().equals(Role.COMPANY)) {
-//            throw new NegocioException("É company");
-            var accepts = acceptRepository.findAll(pageable)
-                        .map(acceptMapper::toAcceptResponse);
-            return pagedResourcesAssembler.toModel(accepts, acceptAssembler);
-//        } else if (user.getRole().equals(Role.CANDIDATE)) {
-////            throw new NegocioException("É candidate");
-//            var accepts = acceptRepository.findAllByUserId(pageable,userId)
-//                    .map(acceptMapper::toAcceptResponse);
-//            return pagedResourcesAssembler.toModel(accepts, acceptAssembler);
-//
-//        }
-
-
-//        Page<AcceptResponse>
-//                accepts = acceptRepository.findAllByUserId(pageable,userId)
-//                .map(acceptMapper::toAcceptResponse);
-//
-//
-//        AJEITAR
-//        return null;
-//        return pagedResourcesAssembler.toModel(accepts, acceptAssembler);
+        return pagedResourcesAssembler.toModel(accepts, acceptAssembler);
     }
 
 
 
-
-
     @GetMapping("/custom")
-    public List<AcceptResponse> findTest(@RequestParam(value = "id", required = false) Long id, @RequestParam(value = "imo", required = false) String imo, @RequestParam(value = "status", required = false) String status, @RequestParam(value = "nome", required = false) String nome, @RequestParam(value = "categoria", required = false) String categoria, @RequestParam(value = "data_create", required = false) String data_create) {
-            List<AcceptResponse> accepts = acceptCustomRepository.acceptsCustom(id, imo, status, nome, categoria, data_create)
+    public List<AcceptResponse> findTest(@RequestParam(value = "id", required = false) Long id,
+                                         @RequestParam(value = "imo", required = false) String imo,
+                                         @RequestParam(value = "status", required = false) String status,
+                                         @RequestParam(value = "nome", required = false) String nome,
+                                         @RequestParam(value = "categoria", required = false) String categoria,
+                                         @RequestParam(value = "dataInicio", required = false)
+                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+                                         @RequestParam(value = "dataFim", required = false)
+                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim) {
+            List<AcceptResponse> accepts = acceptCustomRepository.acceptsCustom(id, imo, status, nome, categoria, dataInicio,dataFim)
                     .stream()
                     .map(acceptMapper::toAcceptResponse)
                     .collect(Collectors.toList());

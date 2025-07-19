@@ -162,24 +162,41 @@ public class CadastroAcceptService {
 
 //       ~~~    PLANO DE AMARRACAO PORTO(BASEADO NAS REUNIOES)
         for (Berco berco : bercos) {
-//            if(Objects.equals(vessel.getCategoria(), berco.getCategoria())) {
-//                if ((vessel.getLoa()<=berco.getLoa_max())&&(acceptRequest.getCalado_entrada()<=berco.getCalado_max())&&(acceptRequest.getCalado_saida()<=berco.getCalado_max())&&(vessel.getDwt()<=berco.getDwt())
-////                TESTAR SE TÁ FUNCIONANDO ESSA CHECAGEM DA BLACKLIST
-//                &&(!blackListed)
-//                ) {
-//                    bercosCompativeis.add(berco);
-//                }
-//            }
+            String catNavio = accept.getCategoria();   // "2" = granel sólido; "3" = granel líquido; "1" = carga geral
+            String catBerco = berco.getCategoria();
+            boolean categoriaValida = false;
 
-            if(Objects.equals(accept.getCategoria(), berco.getCategoria())) {
-                if ((accept.getLoa()<=berco.getLoa_max())&&(accept.getCalado_entrada()<=berco.getCalado_max())&&(accept.getCalado_saida()<=berco.getCalado_max())&&(accept.getDwt()<=berco.getDwt())
-//                TESTAR SE TÁ FUNCIONANDO ESSA CHECAGEM DA BLACKLIST
-                &&(!blackListed)
-                ) {
-                    bercosCompativeis.add(berco);
+            // Se o navio for granel sólido ("2"), só aceita berços "1" ou "2"
+            if ("2".equals(catNavio)) {
+                if ("1".equals(catBerco) || "2".equals(catBerco)) {
+                    categoriaValida = true;
                 }
             }
+            // Se o navio for granel líquido ("3"), só aceita berços "3"
+            else if ("3".equals(catNavio)) {
+                if ("3".equals(catBerco)) {
+                    categoriaValida = true;
+                }
+            }
+            // Se for carga geral ("1") ou outro código, exige igualdade exata
+            else {
+                if (catNavio.equals(catBerco)) {
+                    categoriaValida = true;
+                }
+            }
+
+            // Verificação de dimensões, DWT e blacklist
+            if (categoriaValida
+                    && accept.getLoa()           <= berco.getLoa_max()
+                    && accept.getCalado_entrada() <= berco.getCalado_max()
+                    && accept.getCalado_saida()   <= berco.getCalado_max()
+                    && accept.getDwt()           <= berco.getDwt()
+                    && !blackListed) {
+                bercosCompativeis.add(berco);
+            }
         }
+
+
 
         Accept lastAccept = acceptRepository.findFirstByOrderByDataAcceptDesc();
 
@@ -208,7 +225,7 @@ public class CadastroAcceptService {
                             "STATUS INPUTADO PARA O ACEITE(SISTEMA): Em processamento"+"\n"+
                             "OBS DO USUÁRIO: "+accept.getObs()+"\n"+
                             "DATA CRIAÇÃO DO REGISTRO DE ACEITE: "+accept.getData_create()+"\n"+
-                        "DADOS DO USUÁRIO: "+"ID: "+user.getId()+" E-MAIL: "+user.getEmail()+" NOME: "+user.getName()+" PAPEL: "+user.getRole();
+                            "DADOS DO USUÁRIO: "+"ID: "+user.getId()+" E-MAIL: "+user.getEmail()+" NOME: "+user.getName()+" PAPEL: "+user.getRole();
 
 
             }

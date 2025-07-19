@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.repository.Modifying;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -116,6 +117,8 @@ public class Accept {
     @Column(length=500)
     private String path;
 
+    @Column(nullable = false)
+    private List<Long> bercosSelecionados = new ArrayList<>();
 
 //    @Column(nullable = false, length = 20)
 //    @Enumerated(EnumType.STRING)

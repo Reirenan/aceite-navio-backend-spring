@@ -84,6 +84,7 @@ public class AcceptRequest {
 //   @Size(min = 1, max = 10, message = "Calado deve ter no mínimo 1 e no máximo 10 caracteres")
    private Float calado_saida;
 
+   private List<Long> bercosSelecionados;
 
     
 }

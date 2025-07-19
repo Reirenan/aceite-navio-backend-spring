@@ -35,9 +35,12 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
@@ -51,6 +54,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.util.logging.Logger.global;
 import static org.hibernate.type.descriptor.java.CoercionHelper.toLong;
@@ -79,6 +83,14 @@ public class VesselRestController {
     @Autowired
     private final Disco disco;
 
+    @GetMapping("/sem-paginacao")
+    public CollectionModel<EntityModel<VesselResponse>> findAllSemPaginacao() {
+        List<VesselResponse> lista = vesselRepository.findAll(Sort.by(Sort.Direction.DESC, "id")).stream()
+                .map(vesselMapper::toVesselResponse)
+                .collect(Collectors.toList());
+        return vesselAssembler.toCollectionModel(lista);
+    }
+
     public void check_user(Vessel vessel){
 
         if(securityService.getCurrentUser() != vessel.getUser() ) {
@@ -89,13 +101,14 @@ public class VesselRestController {
 
     @GetMapping
     public CollectionModel<EntityModel<VesselResponse>> findAll(@PageableDefault(value = 15) Pageable pageable) {
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("id").descending());
 
         User user = securityService.getCurrentUser();
         Long userId = user.getId();
 
 //        if (user.getRole().equals(Role.COMPANY)) {
             // throw new NegocioException("É company");
-            var vessels = vesselRepository.findAll(pageable)
+            var vessels = vesselRepository.findAll(sortedPageable)
                     .map(vesselMapper::toVesselResponse);
             return pagedResourcesAssembler.toModel(vessels, vesselAssembler);
 //        } else if (user.getRole().equals(Role.CANDIDATE)) {
@@ -180,23 +193,17 @@ public class VesselRestController {
 
 
     @GetMapping("/custom")
-    public List<Vessel> findTest(@RequestParam(value = "id", required = false) Long id, @RequestParam(value = "imo", required = false) Long imo, @RequestParam(value = "categoria", required = false) String categoria, @RequestParam(value = "nome", required = false) String nome) {
+    public List<Vessel> findTest(
+            @RequestParam(value = "id", required = false) Long id,
+            @RequestParam(value = "imo", required = false) Long imo,
+            @RequestParam(value = "categoria", required = false) String categoria,
+            @RequestParam(value = "nome", required = false) String nome,
+            @RequestParam(value = "dataInicio", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+            @RequestParam(value = "dataFim", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim) {
 
-
-
-        List<Vessel> vessels = vesselCustomRepository.vesselsCustom(id, imo, categoria, nome);
-//                    .stream()
-//                    .map(acceptMapper::toAcceptResponse)
-//                    .collect(Collectors.toList());
-
-//            List<Accept>  acceptRespons;
-//            for(AcceptOk i : accepts){
-//
-//                acceptRespons.add(acceptMapper.toAccept(i)) ;
-//            }
-
-
-
+        List<Vessel> vessels = vesselCustomRepository.vesselsCustom(id, imo, categoria, nome, dataInicio, dataFim);
         return vessels;
     }
 

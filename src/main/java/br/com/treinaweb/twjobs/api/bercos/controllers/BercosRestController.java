@@ -20,7 +20,9 @@ import br.com.treinaweb.twjobs.core.services.auth.SecurityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -29,6 +31,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 //@CrossOrigin
 @RestController
@@ -49,11 +52,19 @@ public class BercosRestController {
 
     @GetMapping
     public CollectionModel<EntityModel<BercoResponse>> findAll(Pageable pageable) {
-        var bercos = bercoRepository.findAll(pageable)
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("id").descending());
+
+        var bercos = bercoRepository.findAll(sortedPageable)
                 .map(bercoMapper::toBercoResponse);
         return pagedResourcesAssembler.toModel(bercos, bercoAssembler);
     }
-
+    @GetMapping("/sem-paginacao")
+    public CollectionModel<EntityModel<BercoResponse>> findAllSemPaginacao() {
+        List<BercoResponse> lista = bercoRepository.findAll().stream()
+                .map(bercoMapper::toBercoResponse)
+                .collect(Collectors.toList());
+        return bercoAssembler.toCollectionModel(lista);
+    }
     @GetMapping("/{id}")
     public EntityModel<BercoResponse> findById(@PathVariable Long id) {
         var berco = bercoRepository.findById(id)

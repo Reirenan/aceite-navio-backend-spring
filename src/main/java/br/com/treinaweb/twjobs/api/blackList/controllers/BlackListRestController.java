@@ -24,7 +24,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.CollectionModel;
@@ -37,6 +39,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 //"""
@@ -60,11 +63,20 @@ public class BlackListRestController {
 
     private final VesselRepository vesselRepository;
 
+    @GetMapping("/sem-paginacao")
+    @TWJobsPermissions.IsCompany
+    public CollectionModel<EntityModel<BlackListResponse>> findAllSemPaginacao() {
+        List<BlackListResponse> lista = blackListRepository.findAll(Sort.by(Sort.Direction.DESC, "id")).stream()
+                .map(blackListMapper::toBlackListResponse)
+                .collect(Collectors.toList());
+        return blackListAssembler.toCollectionModel(lista);
+    }
 
     //"@PageableDefault(value = 7)" tamanho local para o tamanho da paginação. Deve ser igual ou menor ao valor encontrado no "application.properties"
     @GetMapping
     @TWJobsPermissions.IsCompany
     public CollectionModel<EntityModel<BlackListResponse>> findAll(@PageableDefault(value = 15) Pageable pageable) {
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("id").descending());
 
         User user = securityService.getCurrentUser();
         Long userId = user.getId();
@@ -72,7 +84,7 @@ public class BlackListRestController {
 //        org.springframework.data.domain.Page<BlackListResponse> blackLists = null;
 //        if (user.getRole().equals(Role.COMPANY)) {
 //            throw new NegocioException("É company");
-             var blackLists = blackListRepository.findAll(pageable)
+             var blackLists = blackListRepository.findAll(sortedPageable)
                     .map(blackListMapper::toBlackListResponse);
              return pagedResourcesAssembler.toModel(blackLists, blackListAssembler);
 //        } else if (user.getRole().equals(Role.CANDIDATE)) {

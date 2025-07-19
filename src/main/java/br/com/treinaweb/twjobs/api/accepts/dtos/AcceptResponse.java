@@ -61,6 +61,7 @@ public class AcceptResponse {
     private Float calado_entrada;
 
     private Float calado_saida;
+    private List<Long> bercosSelecionados;
 
 
 //    private List<Long> bercos;

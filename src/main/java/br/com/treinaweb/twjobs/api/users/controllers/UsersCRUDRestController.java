@@ -13,7 +13,9 @@ import br.com.treinaweb.twjobs.core.repositories.UserRepository;
 import br.com.treinaweb.twjobs.core.services.auth.SecurityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.CollectionModel;
@@ -48,8 +50,9 @@ public class UsersCRUDRestController {
     @GetMapping
     @TWJobsPermissions.IsCompany
     public CollectionModel<EntityModel<UserResponse>> findAll(@PageableDefault(value = 15) Pageable pageable) {
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("id").descending());
 
-        var users = userRepository.findAll(pageable)
+        var users = userRepository.findAll(sortedPageable)
                 .map(userMapper::toUserResponse);
         return pagedResourcesAssembler.toModel(users, userAssembler);
     }
