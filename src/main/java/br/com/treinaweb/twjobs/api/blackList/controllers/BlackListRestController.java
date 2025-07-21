@@ -24,9 +24,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.CollectionModel;
@@ -66,11 +64,39 @@ public class BlackListRestController {
     @GetMapping("/sem-paginacao")
     @TWJobsPermissions.IsCompany
     public CollectionModel<EntityModel<BlackListResponse>> findAllSemPaginacao() {
-        List<BlackListResponse> lista = blackListRepository.findAll(Sort.by(Sort.Direction.DESC, "id")).stream()
+        // Recupera a lista de BlackList ordenada
+        List<BlackList> list = blackListRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+
+        // Enriquecer com dados do navio
+        list.forEach(item -> {
+            vesselRepository.findByImo(item.getImo()).ifPresent(vessel -> {
+                item.setMmsi(vessel.getMmsi());
+                item.setNome(vessel.getNome());
+                item.setLoa(vessel.getLoa());
+                item.setBoca(vessel.getBoca());
+                item.setDwt(vessel.getDwt());
+                item.setPontal(vessel.getPontal());
+                item.setPonte_mfold(vessel.getPonte_mfold());
+                item.setMfold_quilha(vessel.getMfold_quilha());
+
+                item.setCategoria(vessel.getCategoria() != null ? vessel.getCategoria() : "não informado");
+                item.setFlag(vessel.getFlag() != null ? Integer.valueOf(vessel.getFlag()) : null);
+            });
+        });
+
+        // Mapeia para DTO
+        List<BlackListResponse> responseList = list.stream()
                 .map(blackListMapper::toBlackListResponse)
                 .collect(Collectors.toList());
-        return blackListAssembler.toCollectionModel(lista);
+
+        // Monta resposta HATEOAS
+        List<EntityModel<BlackListResponse>> entityModels = responseList.stream()
+                .map(blackListAssembler::toModel)
+                .collect(Collectors.toList());
+
+        return CollectionModel.of(entityModels);
     }
+
 
     //"@PageableDefault(value = 7)" tamanho local para o tamanho da paginação. Deve ser igual ou menor ao valor encontrado no "application.properties"
     @GetMapping
@@ -78,33 +104,37 @@ public class BlackListRestController {
     public CollectionModel<EntityModel<BlackListResponse>> findAll(@PageableDefault(value = 15) Pageable pageable) {
         Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("id").descending());
 
-        User user = securityService.getCurrentUser();
-        Long userId = user.getId();
+        // Recupera a página de BlackList
+        Page<BlackList> blackListPage = blackListRepository.findAll(sortedPageable);
 
-//        org.springframework.data.domain.Page<BlackListResponse> blackLists = null;
-//        if (user.getRole().equals(Role.COMPANY)) {
-//            throw new NegocioException("É company");
-             var blackLists = blackListRepository.findAll(sortedPageable)
-                    .map(blackListMapper::toBlackListResponse);
-             return pagedResourcesAssembler.toModel(blackLists, blackListAssembler);
-//        } else if (user.getRole().equals(Role.CANDIDATE)) {
-////            throw new NegocioException("É candidate");
-//
-//            blackLists = blackListRepository.findAllByUserId(pageable, userId)
-//                    .map(blackListMapper::toBlackListResponse);
-//            pagedResourcesAssembler.toModel(blackLists, blackListAssembler);
-//
-//        }
+        // Para cada item, busca o navio e preenche os campos manualmente
+        List<BlackList> enriched = blackListPage.getContent().stream()
+                .peek(item -> {
+                    vesselRepository.findByImo(item.getImo()).ifPresent(vessel -> {
+                        item.setMmsi(vessel.getMmsi());
+                        item.setNome(vessel.getNome());
+                        item.setLoa(vessel.getLoa());
+                        item.setBoca(vessel.getBoca());
+                        item.setDwt(vessel.getDwt());
+                        item.setPontal(vessel.getPontal());
+                        item.setPonte_mfold(vessel.getPonte_mfold());
+                        item.setMfold_quilha(vessel.getMfold_quilha());
 
+                        item.setCategoria(vessel.getCategoria() != null ? vessel.getCategoria() : "não informado");
+                        item.setFlag(vessel.getFlag() != null ? Integer.valueOf(vessel.getFlag()) : null);
+                    });
+                })
+                .collect(Collectors.toList());
 
-//        Page<AcceptResponse>
-//                accepts = acceptRepository.findAllByUserId(pageable,userId)
-//                .map(acceptMapper::toAcceptResponse);
-//
-//
-//        return null;
-//        return pagedResourcesAssembler.toModel(blackLists, blackListAssembler);
+        // Converte para página novamente (com os dados preenchidos)
+        Page<BlackList> enrichedPage = new PageImpl<>(enriched, sortedPageable, blackListPage.getTotalElements());
+
+        // Mapeia para DTO
+        Page<BlackListResponse> responsePage = enrichedPage.map(blackListMapper::toBlackListResponse);
+
+        return pagedResourcesAssembler.toModel(responsePage, blackListAssembler);
     }
+
 
     @GetMapping("/statistics/count")
     @TWJobsPermissions.IsCompany
