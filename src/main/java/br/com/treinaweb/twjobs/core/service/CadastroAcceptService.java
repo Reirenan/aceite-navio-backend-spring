@@ -87,6 +87,10 @@ public class CadastroAcceptService {
             extension = filename.substring(dotIndex + 1);
         }
 
+        System.out.println("***");
+        System.out.println("FILENAME");
+        System.out.println(filename);
+
         String[] extensions = {"txt", "zip", "pdf"};
 
         Boolean verifica = false;
@@ -104,9 +108,13 @@ public class CadastroAcceptService {
 
         }
 
-       // destinatario = String.valueOf(emailSendRepository.findByStatus(EmailActivation.enable));
+        // destinatario = String.valueOf(emailSendRepository.findByStatus(EmailActivation.enable));
         //if you are using optional and want to get or set an attribute, you must use the "get()" before
         destinatario = String.valueOf(userRepository.findBySendEmail(Boolean.TRUE).get().getEmail());
+
+        System.out.println("***");
+        System.out.println("DESTINATÁRIO");
+        System.out.println(destinatario);
 
         AcceptRequest acceptRequest = mapper.readValue(acceptRequestForm, AcceptRequest.class);
 
@@ -157,82 +165,126 @@ public class CadastroAcceptService {
 
         List<Berco> bercosCompativeis = new ArrayList<>();
 
+// <PARTE-NOVA>
+        List<Berco> bercosRestricao = new ArrayList<>();
+
+        boolean hasRestrics = false;
+// </PARTE-NOVA>
+
+
 //        CHECA SE TÁ NA BLACKLIST
         boolean blackListed = blackListRepository.existsByImo(accept.getImo());
 
 //       ~~~    PLANO DE AMARRACAO PORTO(BASEADO NAS REUNIOES)
         for (Berco berco : bercos) {
-            String catNavio = accept.getCategoria();   // "2" = granel sólido; "3" = granel líquido; "1" = carga geral
-            String catBerco = berco.getCategoria();
-            boolean categoriaValida = false;
+//            if(Objects.equals(vessel.getCategoria(), berco.getCategoria())) {
+//                if ((vessel.getLoa()<=berco.getLoa_max())&&(acceptRequest.getCalado_entrada()<=berco.getCalado_max())&&(acceptRequest.getCalado_saida()<=berco.getCalado_max())&&(vessel.getDwt()<=berco.getDwt())
+////                TESTAR SE TÁ FUNCIONANDO ESSA CHECAGEM DA BLACKLIST
+//                &&(!blackListed)
+//                ) {
+//                    bercosCompativeis.add(berco);
+//                }
+//            }
 
-            // Se o navio for granel sólido ("2"), só aceita berços "1" ou "2"
-            if ("2".equals(catNavio)) {
-                if ("1".equals(catBerco) || "2".equals(catBerco)) {
-                    categoriaValida = true;
-                }
-            }
-            // Se o navio for granel líquido ("3"), só aceita berços "3"
-            else if ("3".equals(catNavio)) {
-                if ("3".equals(catBerco)) {
-                    categoriaValida = true;
-                }
-            }
-            // Se for carga geral ("1") ou outro código, exige igualdade exata
-            else {
-                if (catNavio.equals(catBerco)) {
-                    categoriaValida = true;
+            if(Objects.equals(accept.getCategoria(), berco.getCategoria())) {
+                if ((accept.getLoa()<=berco.getLoa_max())&&(accept.getCalado_entrada()<=berco.getCalado_max())&&(accept.getCalado_saida()<=berco.getCalado_max())&&(accept.getDwt()<=berco.getDwt())
+//                TESTAR SE TÁ FUNCIONANDO ESSA CHECAGEM DA BLACKLIST
+                        &&(!blackListed)
+                ) {
+                    bercosCompativeis.add(berco);
                 }
             }
 
-            // Verificação de dimensões, DWT e blacklist
-            if (categoriaValida
-                    && accept.getLoa()           <= berco.getLoa_max()
-                    && accept.getCalado_entrada() <= berco.getCalado_max()
-                    && accept.getCalado_saida()   <= berco.getCalado_max()
-                    && accept.getDwt()           <= berco.getDwt()
-                    && !blackListed) {
-                bercosCompativeis.add(berco);
+// <PARTE-NOVA>
+            // ADICIONA BERCOS DE RESTRICAO AOS BERCOS COM RESTRICAO (*)
+            if (acceptRequest.getBercosSelecionados() != null && !acceptRequest.getBercosSelecionados().isEmpty()) {
+                // SE acceptRequest.getBercosSelecionados() NÃO ESTÁ VAZIO
+                for(Long nome : acceptRequest.getBercosSelecionados()) {
+                    if(berco.getNome()==nome) {
+                        bercosRestricao.add(berco);
+                    }
+                }
+                hasRestrics = true;
             }
+// </PARTE-NOVA>
+
         }
 
-
-
+// <PARTE-NOVA>
         Accept lastAccept = acceptRepository.findFirstByOrderByDataAcceptDesc();
 
         var lastAcceptId = lastAccept.getId();
         var  currentAcceptId = lastAcceptId +1;
 
-        if (!bercosCompativeis.isEmpty()) {
+
+        // FAZ PRIMEIRO AS RESTRIÇÕES
+        if(hasRestrics) {
+
+
+            String nome_bercos_comp = "";
+            for(Berco berco : bercosCompativeis) {
+                // GUARDA O NOME DOS BERCOS
+                nome_bercos_comp = nome_bercos_comp + berco.getNome() + ", ";
+            }
+
+            String nome_bercos_restric = "";
+            for(Berco berco : bercosRestricao) {
+                // GUARDA O NOME DOS BERCOS
+                nome_bercos_restric = nome_bercos_restric + berco.getNome() + ", ";
+
+                //    COLOCA BERCOS COM RESTRICAÇÃO JUNTO AO COMPATÍVEIS
+                bercosCompativeis.add(berco);
+            }
+
             accept.setBercos(bercosCompativeis);
-//            accept.setStatus(VeriStatus.valueOf("Y"));
+            // OPERADOR PORTUÁRIO DEVE ANALISAR
+            accept.setStatus("N");
+
+            // CRIA & ENVIA E-MAIL
+            String msg;
+
+            msg =
+                    "ID DO ACEITE: "+currentAcceptId+"\n"+
+                            "IMO DO NAVIO: "+accept.getImo()+"\n"+
+                            "CAUSA IDENTIFICADA(SISTEMA): Navio com RESTRIÇÃO! O Ag. Marítimo solicita atracação em berços específicos(excepcional)."+"\n"+
+                            "BERCOS COMPATÍVEIS(SISTEMA): "+nome_bercos_comp+"\n"+
+                            "BERCOS SOLICITADOS(USUÁRIO): "+nome_bercos_restric+"\n"+
+                            "STATUS INPUTADO PARA O ACEITE(SISTEMA): Em processamento"+"\n"+
+                            "OBS DO USUÁRIO: "+accept.getObs()+"\n"+
+                            "DATA CRIAÇÃO DO REGISTRO DE ACEITE: "+accept.getData_create()+"\n"+
+                            "DADOS DO USUÁRIO: "+"ID: "+user.getId()+" E-MAIL: "+user.getEmail()+" NOME: "+user.getName()+" PAPEL: "+user.getRole();
+
+            emailService.enviarEmailTexto(destinatario, "Aceite de Navio - BLOQUEADO", msg);
+
+        } else if (!bercosCompativeis.isEmpty()) {
+
+// </PARTE NOVA>
+            accept.setBercos(bercosCompativeis);
             accept.setStatus("Y");
         } else {
 //            id, imo, user, status, obs, data de criacao, local hospedagem + URIs
             String msg;
             if(blackListed) {
                 msg =       "ID DO ACEITE: "+currentAcceptId+"\n"+
-                            "IMO DO NAVIO: "+accept.getImo()+"\n"+
-                            "CAUSA IDENTIFICADA(SISTEMA): Navio problemático, está na BLACK LIST!"+"\n"+
-                            "STATUS INPUTADO PARA O ACEITE(SISTEMA): Em processamento"+"\n"+
-                            "OBS DO USUÁRIO: "+accept.getObs()+"\n"+
-                            "DATA CRIAÇÃO DO REGISTRO DE ACEITE: "+accept.getData_create()+"\n"+
-                            "DADOS DO USUÁRIO: "+"ID: "+user.getId()+" E-MAIL: "+user.getEmail()+" NOME: "+user.getName()+" PAPÉL: "+user.getRole();
+                        "IMO DO NAVIO: "+accept.getImo()+"\n"+
+                        "CAUSA IDENTIFICADA(SISTEMA): Navio problemático, está na BLACK LIST!"+"\n"+
+                        "STATUS INPUTADO PARA O ACEITE(SISTEMA): Em processamento"+"\n"+
+                        "OBS DO USUÁRIO: "+accept.getObs()+"\n"+
+                        "DATA CRIAÇÃO DO REGISTRO DE ACEITE: "+accept.getData_create()+"\n"+
+                        "DADOS DO USUÁRIO: "+"ID: "+user.getId()+" E-MAIL: "+user.getEmail()+" NOME: "+user.getName()+" PAPEL: "+user.getRole();
             } else {
                 msg =       "ID DO ACEITE: "+currentAcceptId+"\n"+
-                            "IMO DO NAVIO: "+accept.getImo()+"\n"+
-                            "CAUSA IDENTIFICADA(SISTEMA): Navio problemático, de acordo com categoria, loa, dwt e calados cadastrados, nenhum berço o comporta!"+"\n"+
-                            "STATUS INPUTADO PARA O ACEITE(SISTEMA): Em processamento"+"\n"+
-                            "OBS DO USUÁRIO: "+accept.getObs()+"\n"+
-                            "DATA CRIAÇÃO DO REGISTRO DE ACEITE: "+accept.getData_create()+"\n"+
-                            "DADOS DO USUÁRIO: "+"ID: "+user.getId()+" E-MAIL: "+user.getEmail()+" NOME: "+user.getName()+" PAPEL: "+user.getRole();
+                        "IMO DO NAVIO: "+accept.getImo()+"\n"+
+                        "CAUSA IDENTIFICADA(SISTEMA): Navio problemático, de acordo com categoria, loa, dwt e calados cadastrados, nenhum berço o comporta!"+"\n"+
+                        "STATUS INPUTADO PARA O ACEITE(SISTEMA): Em processamento"+"\n"+
+                        "OBS DO USUÁRIO: "+accept.getObs()+"\n"+
+                        "DATA CRIAÇÃO DO REGISTRO DE ACEITE: "+accept.getData_create()+"\n"+
+                        "DADOS DO USUÁRIO: "+"ID: "+user.getId()+" E-MAIL: "+user.getEmail()+" NOME: "+user.getName()+" PAPEL: "+user.getRole();
 
 
             }
             emailService.enviarEmailTexto(destinatario, "Aceite de Navio - BLOQUEADO", msg);
-//            accept.setStatus(VeriStatus.valueOf("N"));
             accept.setStatus("N");
-//            throw new NegocioException("Nenhum berço compatível.");
         }
 
         accept = acceptRepository.save(accept);
@@ -285,25 +337,25 @@ public class CadastroAcceptService {
 
 
 
-//   ESTATÍSTICA ACEITO, NEGADO, EM ANÁLISE
-public Map<String, Long> getStatusStatistics() {
-    // Obtem os resultados agrupados diretamente do banco
-    List<Object[]> results = acceptRepository.countByStatus();
+    //   ESTATÍSTICA ACEITO, NEGADO, EM ANÁLISE
+    public Map<String, Long> getStatusStatistics() {
+        // Obtem os resultados agrupados diretamente do banco
+        List<Object[]> results = acceptRepository.countByStatus();
 
-    // Mapa para armazenar a estatística traduzida
-    Map<String, Long> statistics = new HashMap<>();
+        // Mapa para armazenar a estatística traduzida
+        Map<String, Long> statistics = new HashMap<>();
 
-    for (Object[] result : results) {
-        String statusCode = (String) result[0]; // Código de status ("1", "2", "3")
-        Long count = (Long) result[1];         // Contagem de registros
+        for (Object[] result : results) {
+            String statusCode = (String) result[0]; // Código de status ("1", "2", "3")
+            Long count = (Long) result[1];         // Contagem de registros
 
-        // Traduzir o status code para o rótulo correspondente
-        String statusLabel = mapStatusCodeToLabel(statusCode);
-        statistics.put(statusLabel, count);
+            // Traduzir o status code para o rótulo correspondente
+            String statusLabel = mapStatusCodeToLabel(statusCode);
+            statistics.put(statusLabel, count);
+        }
+
+        return statistics;
     }
-
-    return statistics;
-}
 
 
     /**
