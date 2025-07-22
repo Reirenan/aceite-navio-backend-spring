@@ -154,17 +154,12 @@ public class AcceptRestController {
     @PutMapping("/{id}")
     @TWJobsPermissions.IsCompany
     public EntityModel<AcceptResponse> update(
-//            @RequestBody @Valid AcceptRequest acceptRequest,
-//            @PathVariable Long id
-
-            @Valid @RequestParam(name="acceptRequestForm", required=true) String acceptRequestForm, @PathVariable Long id,  @RequestParam(name="foto", required=false) MultipartFile foto
+            @Valid @RequestParam(name = "acceptRequestForm", required = true) String acceptRequestForm,
+            @PathVariable Long id,
+            @RequestParam(name = "foto", required = false) MultipartFile foto
     ) throws JsonProcessingException {
-/*
-  Apenas admin podem setar manualmente o Status. O Candidate não pode.
-  Adicionar essa funcionalidade.
-  O mesmo para berços.
-*/
-        //verifica extensao
+
+        // Verifica extensão do arquivo (se houver)
         String filename = foto.getOriginalFilename();
         String extension = null;
         int dotIndex = filename.lastIndexOf(".");
@@ -173,20 +168,18 @@ public class AcceptRestController {
         }
 
         String[] extensions = {"txt", "zip", "pdf"};
-
         Boolean verifica = false;
-        if(extension!=null) {
-            for(String i : extensions){
-                if(i.equals(extension) ) {
-                    verifica =true;
+        if (extension != null) {
+            for (String i : extensions) {
+                if (i.equals(extension)) {
+                    verifica = true;
                     break;
                 }
             }
 
-            if(!verifica){
+            if (!verifica) {
                 throw new NegocioException(extension);
             }
-
         }
 
         AcceptRequest acceptRequest = mapper.readValue(acceptRequestForm, AcceptRequest.class);
@@ -194,62 +187,43 @@ public class AcceptRestController {
         User user = securityService.getCurrentUser();
         Long userId = user.getId();
 
-        Accept accept = new Accept();
-//        APENAS ADMIN PODEM ALTERAR OS DADOS DO ACEITE
-//        if(user.getRole()==Role.COMPANY) {
+        Accept accept = acceptRepository.findById(id)
+                .orElseThrow(AcceptNotFoundException::new);
 
-            accept = acceptRepository.findById(id)
-                    .orElseThrow(AcceptNotFoundException::new);
+        var acceptData = acceptMapper.toAccept(acceptRequest);
 
-            var acceptData = acceptMapper.toAccept(acceptRequest);
-//            acceptData.setId(id);
+        acceptData.setData_update(String.valueOf(LocalDate.now()));
+        acceptData.setTime_update(String.valueOf(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))));
 
-
-
-
-
-
-//        if(user.getRole()!= Role.COMPANY &&(!Objects.equals(accept.getUser().getId(), userId))) {throw new NegocioException("Você não é proprietário.");}
-
-
-//            if(acceptData.getStatus() != null) {
-//
-//            }
-            acceptData.setData_update(String.valueOf(LocalDate.now()));
-
-            acceptData.setTime_update(String.valueOf(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))));
-
-
-            var path = accept.getPath();
-
-            //se enviar arquivo, pega o nome dele
-            if(foto!=null) {
-                acceptData.setPath(foto.getOriginalFilename());
-                fileManagerController.uploadFile(foto);
-                //SE NÃO ENVIAR NENHUM ARQUIVO
+        if (acceptData.getTime_accept() == null || acceptData.getTime_accept().isBlank()) {
+            String valorExistente = accept.getTime_accept();
+            if (valorExistente != null && !valorExistente.isBlank()) {
+                acceptData.setTime_accept(valorExistente);
             } else {
-                accept.setPath(path);
+                acceptData.setTime_accept(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
             }
+        }
 
-            //copia os campos que eu setar de uma accept para acceptData - ja preenche logo
-            BeanUtils.copyProperties(acceptData, accept, "id", "dataAccept", "data_create", "vessel", "user", "bercos");
+        var path = accept.getPath();
 
-//            if(acceptData.getPath()==null) {
-//                accept.setPath(path);
-//            }
+        if (foto != null) {
+            acceptData.setPath(foto.getOriginalFilename());
+            fileManagerController.uploadFile(foto);
+        } else {
+            accept.setPath(path);
+        }
+
+        // Copia campos definidos de acceptData para accept (exceto campos protegidos)
+        BeanUtils.copyProperties(acceptData, accept,
+                "id", "dataAccept", "data_create", "time_create", "vessel", "user", "bercos");
 
 
-
-            accept = acceptRepository.save(accept);
-
-//        } else {
-//            throw new NegocioException("Não tem permissão.");
-//        }
+        accept = acceptRepository.save(accept);
 
         var acceptResponse = acceptMapper.toAcceptResponse(accept);
         return acceptAssembler.toModel(acceptResponse);
-
     }
+
 
     @DeleteMapping("/{id}")
 //    @TWJobsPermissions.IsOwner
