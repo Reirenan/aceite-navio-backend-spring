@@ -45,34 +45,25 @@ public class FileManagerController {
 
 
     @GetMapping("/download-file")
-    public ResponseEntity<Resource> downloadFile(
-            @RequestParam("filename")
-            String filename) {
-          log.log(Level.INFO, "[REGULAR] with /download-file");
-          try{
-                 var fileToDownload = fileStorageService.getDownloadFile(filename);
-                 return ResponseEntity.ok()
-                         .contentLength(fileToDownload.length())
-                           .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; fileName =\"" + filename + "\"")
-                                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                                 .body(new InputStreamResource(Files.newInputStream(fileToDownload.toPath())));
+    public ResponseEntity<Resource> downloadFile(@RequestParam("filename") String filename) {
+        log.log(Level.INFO, "[REGULAR] with /download-file");
 
-          } catch(Exception e) {
-
-              return ResponseEntity.notFound().build();
-          }
-
-
-//         """   PERMITIR QUE SEJA UMA URL NORMAL PARA QUE CONFORME O USUÁRIO CLIQUE AQUELE ARQUIVO ESPECIFICO SEJA BAIXADO
-//         """   E não uma requisição baixe arquivo por arquivo.
-
-//         """   Enviar email pro user. (I)Para accept  /  (II)Para cadastro de usuário.
-//         (I)https://youtu.be/_MwdIaMy_Ao?si=V-xn0Rb8nkUow97j  (II)https://youtu.be/V-ABkNuubaI?si=83K-Ejfjxs7Gy3if
-
+        try {
+            var fileToDownload = fileStorageService.getDownloadFile(filename);
+            return ResponseEntity.ok()
+                    .contentLength(fileToDownload.length())
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"") // <-- CORRIGIDO AQUI
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(new InputStreamResource(Files.newInputStream(fileToDownload.toPath())));
+        } catch (Exception e) {
+            log.log(Level.SEVERE, "Erro ao tentar baixar arquivo: " + filename, e);
+            return ResponseEntity.notFound().build();
+        }
     }
 
 
-//    ~~  DIVIDE FILE EM PARTES -> BAIXA PARALELO
+
+    //    ~~  DIVIDE FILE EM PARTES -> BAIXA PARALELO
     @GetMapping("/download-faster")
     public ResponseEntity<Resource> downloadFileFaster(
             @RequestParam("fileName")

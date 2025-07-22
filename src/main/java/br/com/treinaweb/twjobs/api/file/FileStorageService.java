@@ -14,7 +14,7 @@ import java.util.Objects;
 @Service
 public class FileStorageService {
 
-    private static final String STORAGE_DIRECTORY = "C:\\StorageJava";
+    private static final String STORAGE_DIRECTORY = "C:\\Users\\Renan\\laps2\\v3\\aceite-tecnico-backend\\src\\main\\arquivos";
 
     public void saveFile(MultipartFile fileToSave) throws IOException {
 
