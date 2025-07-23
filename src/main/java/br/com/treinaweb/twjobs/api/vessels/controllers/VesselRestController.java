@@ -222,9 +222,11 @@ public class VesselRestController {
     @ResponseStatus(HttpStatus.CREATED)
 //    @TWJobsPermissions.IsCompany
     @PostMapping
-    public EntityModel<VesselResponse> create(@Valid @RequestParam(name="vesselRequestForm", required=true) String vesselRequestForm,
-//                                              @RequestParam(name="foto", required=true) List<MultipartFile> fotos
-                                              @RequestParam(name="foto", required=true) MultipartFile foto
+    public EntityModel<VesselResponse> create(@Valid @RequestParam(name="vesselRequestForm",
+                                                          required=true)
+                                                  String vesselRequestForm,
+                                              @RequestParam(name="foto", required=true)
+                                                  MultipartFile foto
     ) throws JsonProcessingException {
 
 
@@ -299,8 +301,6 @@ public class VesselRestController {
 //        vessel.setPath(raiz+"\\"+diretorioFotos+"\\"+securityService.getCurrentUser().getId()+"--"+String.valueOf(date)+"."+foto.getContentType());
 
         vessel.setUser(securityService.getCurrentUser());
-
-
        //Tem que adicionar a validação se o tamanho do IMO é igual à 8.
 
         int[] fator = {7, 6, 5, 4, 3, 2};
@@ -329,15 +329,6 @@ public class VesselRestController {
 //        if(lastNumber != newOperation[nOpeLen -1]) {
 //            throw new NegocioException("O IMO não segue o padrão");
 //        }
-        if (vessel.getCalado_max() != null &&
-                (vessel.getCalado_entrada() > vessel.getCalado_max() || vessel.getCalado_saida() > vessel.getCalado_max())) {
-            vessel.setSt_ver_vessel(VeriStatus.N);
-        } else {
-            vessel.setSt_ver_vessel(VeriStatus.Y);
-        }
-
-
-
         vessel = vesselRepository.save(vessel);
         var vesselResponse = vesselMapper.toVesselResponse(vessel);
         return vesselAssembler.toModel(vesselResponse);

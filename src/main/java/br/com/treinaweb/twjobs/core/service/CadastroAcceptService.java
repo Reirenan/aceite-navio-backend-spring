@@ -209,6 +209,13 @@ public class CadastroAcceptService {
 // </PARTE-NOVA>
 
         }
+        if ((vessel.getCalado_max() != null &&
+                (accept.getCalado_entrada() > vessel.getCalado_max() || accept.
+        getCalado_saida() > vessel.getCalado_max()))) {
+            hasRestrics = true;
+
+        }
+
 
 // <PARTE-NOVA>
         Accept lastAccept = acceptRepository.findFirstByOrderByDataAcceptDesc();

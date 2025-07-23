@@ -76,7 +76,7 @@ public class Vessel {
     @Column(nullable = true, length = 10)
     private Float calado_saida;
 
-    @Column(nullable = true, length = 10)
+    @Column(nullable = false, length = 10)
     private Float calado_max;
 
     @CreationTimestamp

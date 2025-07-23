@@ -53,6 +53,10 @@ public class VesselRequest {
 
     private Float mfold_quilha;
 
+    @NotNull(message = "CALADO MAXIMO deve ser maior que zero")
+    private Float calado_max;
+
+
     //NOT NULL
 //    @NotEmpty
 //    @Size(min = 1, max = 100, message = "CATEGORIA deve ter no mínimo 1 e no máximo 100 caracteres")

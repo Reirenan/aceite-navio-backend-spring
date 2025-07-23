@@ -17,6 +17,7 @@ public class VesselResponse {
     private String mmsi;
     private String nome;
     private Float loa;
+    private Float calado_max;
     private Float boca;
     private Float dwt;
     private Float pontal;
