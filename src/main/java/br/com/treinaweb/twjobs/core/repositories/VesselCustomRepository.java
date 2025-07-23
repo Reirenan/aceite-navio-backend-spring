@@ -47,13 +47,9 @@ public class VesselCustomRepository {
             query += condicao + "A.nome LIKE :nome";
             condicao = " and ";
         }
-
-        if (dataInicio != null && dataFim != null) {
-            query += condicao + "A.time_create BETWEEN :dataInicio AND :dataFim";
-        } else if (dataInicio != null) {
-            query += condicao + "A.time_create >= :dataInicio";
-        } else if (dataFim != null) {
-            query += condicao + "A.time_create <= :dataFim";
+        if (dataInicio != null) {
+            query += condicao + "CAST(A.dataCreate AS string) LIKE :dataCreate";
+            condicao = " and ";
         }
 
         var q = em.createQuery(query, Vessel.class);
@@ -75,12 +71,9 @@ public class VesselCustomRepository {
         }
 
         if (dataInicio != null) {
-            q.setParameter("dataInicio", dataInicio.atStartOfDay());
+            q.setParameter("dataCreate", "%" + dataInicio + "%");
         }
 
-        if (dataFim != null) {
-            q.setParameter("dataFim", dataFim.atTime(23, 59, 59));
-        }
 
         return q.getResultList();
     }

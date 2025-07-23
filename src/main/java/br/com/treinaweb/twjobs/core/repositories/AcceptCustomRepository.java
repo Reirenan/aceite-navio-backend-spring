@@ -42,15 +42,9 @@ public class AcceptCustomRepository {
                query += condicao + "A.categoria = :categoria";
                condicao = " and ";
           }
-
-          DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-          if (dataInicio != null && dataFim != null) {
-               query += condicao + "A.data_create BETWEEN :dataInicio AND :dataFim";
-          } else if (dataInicio != null) {
-               query += condicao + "A.data_create >= :dataInicio";
-          } else if (dataFim != null) {
-               query += condicao + "A.data_create <= :dataFim";
+          if (dataInicio != null) {
+               query += condicao + "A.data_create LIKE :data_create";
+               condicao = " and ";
           }
 
           var q = em.createQuery(query, Accept.class);
@@ -70,15 +64,10 @@ public class AcceptCustomRepository {
           if (categoria != null) {
                q.setParameter("categoria", categoria);
           }
-
-          if (dataInicio != null && dataFim != null) {
-               q.setParameter("dataInicio", dataInicio.format(formatter));
-               q.setParameter("dataFim", dataFim.format(formatter));
-          } else if (dataInicio != null) {
-               q.setParameter("dataInicio", dataInicio.format(formatter));
-          } else if (dataFim != null) {
-               q.setParameter("dataFim", dataFim.format(formatter));
+          if (dataInicio != null) {
+               q.setParameter("data_create", "%"+dataInicio+"%");
           }
+
 
           return q.getResultList();
      }

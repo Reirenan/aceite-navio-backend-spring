@@ -6,8 +6,10 @@ import br.com.treinaweb.twjobs.core.enums.VeriStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Data
@@ -77,6 +79,9 @@ public class Vessel {
     @Column(nullable = true, length = 10)
     private Float calado_max;
 
+    @CreationTimestamp
+    @Column(name = "data_create", updatable = false)
+    private LocalDateTime dataCreate;
 
 
 //    @Column(nullable = false, length = 20)
