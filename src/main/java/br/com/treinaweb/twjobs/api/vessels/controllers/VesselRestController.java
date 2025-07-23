@@ -329,8 +329,12 @@ public class VesselRestController {
 //        if(lastNumber != newOperation[nOpeLen -1]) {
 //            throw new NegocioException("O IMO não segue o padrão");
 //        }
-        vessel.setSt_ver_vessel(VeriStatus.valueOf("N"));
-
+        if (vessel.getCalado_max() != null &&
+                (vessel.getCalado_entrada() > vessel.getCalado_max() || vessel.getCalado_saida() > vessel.getCalado_max())) {
+            vessel.setSt_ver_vessel(VeriStatus.N);
+        } else {
+            vessel.setSt_ver_vessel(VeriStatus.Y);
+        }
 
 
 
