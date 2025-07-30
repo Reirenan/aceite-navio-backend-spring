@@ -6,6 +6,7 @@ RUN ls /app/target
 
 FROM openjdk:21
 EXPOSE 8080
+RUN mkdir -p /app/arquivos && chmod 777 /app/arquivos
 COPY .env .
 COPY --from=builder /app/target/*.jar docker-demo-app-two.jar
 ENTRYPOINT ["java", "-jar", "/docker-demo-app-two.jar"]
