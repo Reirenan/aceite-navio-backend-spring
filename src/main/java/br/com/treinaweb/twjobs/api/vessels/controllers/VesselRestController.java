@@ -18,7 +18,9 @@ import br.com.treinaweb.twjobs.core.models.Disco;
 import br.com.treinaweb.twjobs.core.models.User;
 import br.com.treinaweb.twjobs.core.models.Vessel;
 import br.com.treinaweb.twjobs.core.permissions.TWJobsPermissions;
+import br.com.treinaweb.twjobs.core.repositories.UserRepository;
 import br.com.treinaweb.twjobs.core.repositories.VesselCustomRepository;
+import br.com.treinaweb.twjobs.core.service.EmailService;
 import br.com.treinaweb.twjobs.core.services.auth.SecurityService;
 
 import br.com.treinaweb.twjobs.core.repositories.VesselRepository;
@@ -75,6 +77,10 @@ public class VesselRestController {
 
     private final FileManagerController fileManagerController;
     private final VesselCustomRepository vesselCustomRepository;
+
+    private final EmailService emailService;
+
+    private final UserRepository userRepository;
 
 
     @Autowired
@@ -328,9 +334,44 @@ public class VesselRestController {
 
 //        if(lastNumber != newOperation[nOpeLen -1]) {
 //            throw new NegocioException("O IMO não segue o padrão");
+
 //        }
+        User destinatarioUser = userRepository.findBySendEmail(Boolean.TRUE)
+                .orElseGet(() -> {
+                    User fallback = new User();
+                    fallback.setEmail("suporte@sistema.com");
+                    return fallback;
+                });
+
+        String destinatario = destinatarioUser.getEmail();
+
         vessel = vesselRepository.save(vessel);
         var vesselResponse = vesselMapper.toVesselResponse(vessel);
+        String msg =
+                "ID DO NAVIO: " + vessel.getId() + "\n" +
+                        "IMO DO NAVIO: " + vessel.getImo() + "\n" +
+                        "DETALHES DO NAVIO (SISTEMA):\n" +
+                        "   Nome: " + (vessel.getNome() != null ? vessel.getNome() : "N/D") + "\n" +
+                        "   Categoria: " + (vessel.getCategoria() != null ? vessel.getCategoria() : "N/D") + "\n" +
+                        "   Bandeira: " + (vessel.getFlag() != null ? vessel.getFlag() : "N/D") + "\n" +
+                        "   MMSI: " + (vessel.getMmsi() != null ? vessel.getMmsi() : "N/D") + "\n" +
+                        "   LOA: " + (vessel.getLoa() != null ? vessel.getLoa() + " m" : "N/D") + "\n" +
+                        "   BOCA: " + (vessel.getBoca() != null ? vessel.getBoca() + " m" : "N/D") + "\n" +
+                        "   DWT: " + (vessel.getDwt() != null ? vessel.getDwt() + " t" : "N/D") + "\n" +
+                        "   Pontal: " + (vessel.getPontal() != null ? vessel.getPontal() + " m" : "N/D") + "\n" +
+                        "   Calado (Entrada): " + (vessel.getCalado_entrada() != null ? vessel.getCalado_entrada() + " m" : "N/D") + "\n" +
+                        "   Calado (Saída): " + (vessel.getCalado_saida() != null ? vessel.getCalado_saida() + " m" : "N/D") + "\n" +
+                        "   Calado Máximo: " + (vessel.getCalado_max() != null ? vessel.getCalado_max() + " m" : "N/D") + "\n" +
+                        "   Caminho do Arquivo: " + (vessel.getPath() != null ? vessel.getPath() : "Nenhum arquivo") + "\n" +
+                        "   Verificação do Sistema: " + (vessel.getSt_ver_vessel() != null ? vessel.getSt_ver_vessel() : "N/D") + "\n" +
+                        "\n" +
+                        "STATUS INPUTADO PARA O NAVIO(SISTEMA): " + (vessel.getStatus() != null ? vessel.getStatus() : "N/D") + "\n" +
+                        "OBS DO USUÁRIO: " + (vessel.getObs() != null ? vessel.getObs() : "Nenhuma");
+
+
+
+        emailService.enviarEmailTexto(destinatario, "Navio Cadastrado no Sistema", msg);
+
         return vesselAssembler.toModel(vesselResponse);
     }
 

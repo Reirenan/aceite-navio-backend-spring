@@ -76,18 +76,23 @@ public class CadastroAcceptService {
 
 
 
+    // @SuppressWarnings("null")
     @Transactional
     public EntityModel<AcceptResponse> salvar(String acceptRequestForm, MultipartFile foto, String destinatario) throws JsonProcessingException {
+        String msg;
 
-        //verifica extensao
+        //verifica extensao --> Desabilitado momentâneamente
         String filename = foto.getOriginalFilename();
+        // String filename = "Teste";
+
+
         String extension = null;
         int dotIndex = filename.lastIndexOf(".");
         if (dotIndex >= 0) {
             extension = filename.substring(dotIndex + 1);
         }
 
-        System.out.println("***");
+        System.out.println("*");
         System.out.println("FILENAME");
         System.out.println(filename);
 
@@ -108,11 +113,23 @@ public class CadastroAcceptService {
 
         }
 
-        // destinatario = String.valueOf(emailSendRepository.findByStatus(EmailActivation.enable));
-        //if you are using optional and want to get or set an attribute, you must use the "get()" before
-        destinatario = String.valueOf(userRepository.findBySendEmail(Boolean.TRUE).get().getEmail());
+        User destinatarioUser = userRepository.findBySendEmail(Boolean.TRUE)
+                .orElseGet(() -> {
+                    // fallback: destinatário padrão (ex: e-mail institucional)
+                    User fallback = new User();
+                    fallback.setEmail("suporte@sistema.com");
+                    return fallback;
+                });
 
-        System.out.println("***");
+
+        // Define o e-mail do destinatário dinamicamente
+        destinatario = destinatarioUser.getEmail();
+
+        System.out.println("*");
+        System.out.println("DESTINATÁRIO");
+        System.out.println(destinatario);
+
+        System.out.println("*");
         System.out.println("DESTINATÁRIO");
         System.out.println(destinatario);
 
@@ -120,7 +137,7 @@ public class CadastroAcceptService {
 
 
         User user = securityService.getCurrentUser();
-        Long userId = user.getId();
+        // Long userId = user.getId();
 
         var accept = acceptMapper.toAccept(acceptRequest);
         accept.setUser(user);
@@ -197,7 +214,13 @@ public class CadastroAcceptService {
 
 // <PARTE-NOVA>
             // ADICIONA BERCOS DE RESTRICAO AOS BERCOS COM RESTRICAO (*)
-            if (acceptRequest.getBercosSelecionados() != null && !acceptRequest.getBercosSelecionados().isEmpty()) {
+
+            // Desabilita --> era do código original antes de "alteracao-email"
+            // if(!acceptRequest.getBercosSelecionados().isEmpty()) {
+// <PARTE-NOVA-2>
+            if(acceptRequest.getBercosSelecionados() != null) {
+// </PARTE-NOVA-2>
+
                 // SE acceptRequest.getBercosSelecionados() NÃO ESTÁ VAZIO
                 for(Long nome : acceptRequest.getBercosSelecionados()) {
                     if(berco.getNome()==nome) {
@@ -209,19 +232,13 @@ public class CadastroAcceptService {
 // </PARTE-NOVA>
 
         }
-        if ((vessel.getCalado_max() != null &&
-                (accept.getCalado_entrada() > vessel.getCalado_max() || accept.
-        getCalado_saida() > vessel.getCalado_max()))) {
-            hasRestrics = true;
-
-        }
-
 
 // <PARTE-NOVA>
         Accept lastAccept = acceptRepository.findFirstByOrderByDataAcceptDesc();
 
         var lastAcceptId = lastAccept.getId();
         var  currentAcceptId = lastAcceptId +1;
+
 
 
         // FAZ PRIMEIRO AS RESTRIÇÕES
@@ -248,7 +265,6 @@ public class CadastroAcceptService {
             accept.setStatus("N");
 
             // CRIA & ENVIA E-MAIL
-            String msg;
 
             msg =
                     "ID DO ACEITE: "+currentAcceptId+"\n"+
@@ -266,11 +282,44 @@ public class CadastroAcceptService {
         } else if (!bercosCompativeis.isEmpty()) {
 
 // </PARTE NOVA>
+
+
+// <PARTE-NOVA-2>
+            // CRIA & ENVIA E-MAIL
+
+            String nome_bercos = "";
+            for(Berco berco : bercosCompativeis) {
+                // GUARDA O NOME DOS BERCOS
+                nome_bercos = nome_bercos + berco.getNome() + ", ";
+
+                //    COLOCA BERCOS COM RESTRICAÇÃO JUNTO AO COMPATÍVEIS
+
+            }
+
+
+            msg =
+                    "ID DO ACEITE: "+currentAcceptId+"\n"+
+                            "IMO DO NAVIO: "+accept.getImo()+"\n"+
+                            "CAUSA IDENTIFICADA(SISTEMA): Navio aceito com sucesso! O Ag. Marítimo solicita atracação e o sistema pode inputar berços automaticamente."+"\n"+
+                            "BERCOS COMPATÍVEIS(SISTEMA): "+nome_bercos+"\n"+
+                            "STATUS INPUTADO PARA O ACEITE(SISTEMA): Aceito"+"\n"+
+                            "OBS DO USUÁRIO: "+accept.getObs()+"\n"+
+                            "DATA CRIAÇÃO DO REGISTRO DE ACEITE: "+accept.getData_create()+"\n"+
+                            "DADOS DO USUÁRIO: "+"ID: "+user.getId()+" E-MAIL: "+user.getEmail()+" NOME: "+user.getName()+" PAPEL: "+user.getRole();
+
+            emailService.enviarEmailTexto(destinatario, "Aceite de Navio - ACEITO", msg);
+// </PARTE-NOVA-2>
+
+
+
+
+
+
+
             accept.setBercos(bercosCompativeis);
             accept.setStatus("Y");
         } else {
 //            id, imo, user, status, obs, data de criacao, local hospedagem + URIs
-            String msg;
             if(blackListed) {
                 msg =       "ID DO ACEITE: "+currentAcceptId+"\n"+
                         "IMO DO NAVIO: "+accept.getImo()+"\n"+
@@ -292,7 +341,27 @@ public class CadastroAcceptService {
             }
             emailService.enviarEmailTexto(destinatario, "Aceite de Navio - BLOQUEADO", msg);
             accept.setStatus("N");
+
         }
+
+        if(msg == null){
+            msg =
+                    "O navio de IMO " + accept.getImo() + " solicitou um aceite.\n\n" +
+                            "ID do Aceite: " + currentAcceptId + "\n" +
+                            "Status atual: Aceito.\n\n" +
+                            "Observação do usuário: " + accept.getObs() + "\n" +
+                            "Data de criação: " + accept.getData_create() + "\n\n" +
+                            "Usuário responsável:\n" +
+                            "ID: " + user.getId() + "\n" +
+                            "Nome: " + user.getName() + "\n" +
+                            "E-mail: " + user.getEmail() + "\n" +
+                            "Papel: " + user.getRole();
+
+            emailService.enviarEmailTexto(destinatario, "Solicitação de Aceite Cadastrada", msg);
+
+        }
+
+
 
         accept = acceptRepository.save(accept);
         var acceptResponse = acceptMapper.toAcceptResponse(accept);

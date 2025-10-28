@@ -148,7 +148,7 @@ public class AcceptRestController {
     @PostMapping
     @ResponseStatus(code = HttpStatus.CREATED)
     public EntityModel<AcceptResponse>
-     create(@Valid @RequestParam(name="acceptRequestForm", required=true) String acceptRequestForm,  @RequestParam(name="foto", required=false) MultipartFile foto) throws JsonProcessingException {return cadastroAcceptService.salvar(acceptRequestForm, foto,"pauloacb2020@gmail.com");}
+     create(@Valid @RequestParam(name="acceptRequestForm", required=true) String acceptRequestForm,  @RequestParam(name="foto", required=false) MultipartFile foto) throws JsonProcessingException {return cadastroAcceptService.salvar(acceptRequestForm, foto,"paulowrkstdy@gmail.com");}
 //    renan.montenegro2018@gmail.com
 
     @PutMapping("/{id}")
@@ -158,29 +158,6 @@ public class AcceptRestController {
             @PathVariable Long id,
             @RequestParam(name = "foto", required = false) MultipartFile foto
     ) throws JsonProcessingException {
-
-        // Verifica extensão do arquivo (se houver)
-        String filename = foto.getOriginalFilename();
-        String extension = null;
-        int dotIndex = filename.lastIndexOf(".");
-        if (dotIndex >= 0) {
-            extension = filename.substring(dotIndex + 1);
-        }
-
-        String[] extensions = {"txt", "zip", "pdf"};
-        Boolean verifica = false;
-        if (extension != null) {
-            for (String i : extensions) {
-                if (i.equals(extension)) {
-                    verifica = true;
-                    break;
-                }
-            }
-
-            if (!verifica) {
-                throw new NegocioException(extension);
-            }
-        }
 
         AcceptRequest acceptRequest = mapper.readValue(acceptRequestForm, AcceptRequest.class);
 
@@ -195,6 +172,7 @@ public class AcceptRestController {
         acceptData.setData_update(String.valueOf(LocalDate.now()));
         acceptData.setTime_update(String.valueOf(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))));
 
+        // Mantém o horário de aceite se já existir
         if (acceptData.getTime_accept() == null || acceptData.getTime_accept().isBlank()) {
             String valorExistente = accept.getTime_accept();
             if (valorExistente != null && !valorExistente.isBlank()) {
@@ -204,25 +182,25 @@ public class AcceptRestController {
             }
         }
 
-        var path = accept.getPath();
-
-        if (foto != null) {
+        // ✅ Mantém a imagem anterior se não vier nova foto
+        if (foto != null && !foto.isEmpty()) {
             acceptData.setPath(foto.getOriginalFilename());
-            fileManagerController.uploadFile(foto);
+            // Se quiser, poderia subir a nova imagem aqui:
+            // fileManagerController.uploadFile(foto);
         } else {
-            accept.setPath(path);
+            acceptData.setPath(accept.getPath());
         }
 
-        // Copia campos definidos de acceptData para accept (exceto campos protegidos)
+        // Copia os campos atualizados
         BeanUtils.copyProperties(acceptData, accept,
                 "id", "dataAccept", "data_create", "time_create", "vessel", "user", "bercos");
-
 
         accept = acceptRepository.save(accept);
 
         var acceptResponse = acceptMapper.toAcceptResponse(accept);
         return acceptAssembler.toModel(acceptResponse);
     }
+
 
 
     @DeleteMapping("/{id}")
