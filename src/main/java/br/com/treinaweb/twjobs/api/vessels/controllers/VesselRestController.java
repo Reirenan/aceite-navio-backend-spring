@@ -422,35 +422,6 @@ public class VesselRestController {
     ) throws JsonProcessingException {
         VesselRequest vesselRequest = mapper.readValue(vesselRequestForm, VesselRequest.class);
 
-        //verifica extensao
-        String filename = foto.getOriginalFilename();
-        String extension = null;
-        int dotIndex = filename.lastIndexOf(".");
-        if (dotIndex >= 0) {
-            extension = filename.substring(dotIndex + 1);
-        }
-
-        String[] extensions = {"txt", "zip", "pdf"};
-
-        Boolean verifica = false;
-        if(extension!=null) {
-            for(String i : extensions){
-                if(i.equals(extension) ) {
-                    verifica =true;
-                    break;
-                }
-            }
-
-            if(!verifica){
-                throw new NegocioException(extension);
-            }
-
-        }
-
-
-
-
-
 
         var vessel = vesselRepository.findById(id)
                 .orElseThrow(AceiteNotFoundException::new);
@@ -462,27 +433,13 @@ public class VesselRestController {
 
 
 
-//        check_user(vessel);
+        if (foto != null && !foto.isEmpty()) {
+            vesselData.setPath(foto.getOriginalFilename());
 
-//        vessel.setSt_ver_vessel(vessel.getSt_ver_vessel());
-//        vessel.setStatus(vessel.getStatus());
-
-//        var vesselData = vesselMapper.toVessel(vesselRequest);
-
-        //Resolve o problema do update.
-//        vesselData.setSt_ver_vessel(vessel.getSt_ver_vessel());
-//        vesselData.setStatus(vessel.getStatus());
-
-        //TEMP
-        var path = vessel.getPath();
-        //TEMP
-        if(foto!=null) {
-            vessel.setPath(foto.getOriginalFilename());
-            fileManagerController.uploadFile(foto);
-            //SE NÃO ENVIAR NENHUM ARQUIVO
         } else {
-            vessel.setPath(path);
+            vesselData.setPath(vessel.getPath());
         }
+
 
         //TEMP
         BeanUtils.copyProperties(vesselData, vessel, "id");
