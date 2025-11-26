@@ -64,12 +64,17 @@ public class AcceptRestController {
     private final SecurityService securityService;
     private final PagedResourcesAssembler<AcceptResponse> pagedResourcesAssembler;
 
+
+
     private final CadastroAcceptService cadastroAcceptService;
 
     private final AcceptCustomRepository acceptCustomRepository;
     private final VesselRepository vesselRepository;
 
     private final FileManagerController fileManagerController;
+
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private ObjectMapper mapper;
@@ -151,57 +156,133 @@ public class AcceptRestController {
      create(@Valid @RequestParam(name="acceptRequestForm", required=true) String acceptRequestForm,  @RequestParam(name="foto", required=false) MultipartFile foto) throws JsonProcessingException {return cadastroAcceptService.salvar(acceptRequestForm, foto,"paulowrkstdy@gmail.com");}
 //    renan.montenegro2018@gmail.com
 
+
+
     @PutMapping("/{id}")
     @TWJobsPermissions.IsCompany
     public EntityModel<AcceptResponse> update(
-            @Valid @RequestParam(name = "acceptRequestForm", required = true) String acceptRequestForm,
-            @PathVariable Long id,
-            @RequestParam(name = "foto", required = false) MultipartFile foto
+//            @RequestBody @Valid AcceptRequest acceptRequest,
+//            @PathVariable Long id
+
+            @Valid @RequestParam(name="acceptRequestForm", required=true) String acceptRequestForm, @PathVariable Long id,  @RequestParam(name="foto", required=false) MultipartFile foto
     ) throws JsonProcessingException {
+/*
+  Apenas admin podem setar manualmente o Status. O Candidate não pode.
+  Adicionar essa funcionalidade.
+  O mesmo para berços.
+*/
+        //verifica extensao
+        if(foto != null) {
+            String filename = foto.getOriginalFilename();
+            String extension = null;
+            int dotIndex = filename.lastIndexOf(".");
+            if (dotIndex >= 0) {
+                extension = filename.substring(dotIndex + 1);
+            }
+
+            String[] extensions = {"txt", "zip", "pdf"};
+
+            Boolean verifica = false;
+            if(extension!=null) {
+                for(String i : extensions){
+                    if(i.equals(extension) ) {
+                        verifica =true;
+                        break;
+                    }
+                }
+
+                if(!verifica){
+                    throw new NegocioException(extension);
+                }
+
+            }
+        }
 
         AcceptRequest acceptRequest = mapper.readValue(acceptRequestForm, AcceptRequest.class);
 
         User user = securityService.getCurrentUser();
         Long userId = user.getId();
 
-        Accept accept = acceptRepository.findById(id)
+        Accept accept = new Accept();
+//        APENAS ADMIN PODEM ALTERAR OS DADOS DO ACEITE
+//        if(user.getRole()==Role.COMPANY) {
+
+        accept = acceptRepository.findById(id)
                 .orElseThrow(AcceptNotFoundException::new);
 
         var acceptData = acceptMapper.toAccept(acceptRequest);
+//            acceptData.setId(id);
 
+
+
+
+
+
+//        if(user.getRole()!= Role.COMPANY &&(!Objects.equals(accept.getUser().getId(), userId))) {throw new NegocioException("Você não é proprietário.");}
+
+
+//            if(acceptData.getStatus() != null) {
+//
+//            }
         acceptData.setData_update(String.valueOf(LocalDate.now()));
+
         acceptData.setTime_update(String.valueOf(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))));
 
-        // Mantém o horário de aceite se já existir
-        if (acceptData.getTime_accept() == null || acceptData.getTime_accept().isBlank()) {
-            String valorExistente = accept.getTime_accept();
-            if (valorExistente != null && !valorExistente.isBlank()) {
-                acceptData.setTime_accept(valorExistente);
-            } else {
-                acceptData.setTime_accept(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
-            }
-        }
 
-        // ✅ Mantém a imagem anterior se não vier nova foto
-        if (foto != null && !foto.isEmpty()) {
+        var path = accept.getPath();
+
+        acceptData.setPath(path);
+
+        //se enviar arquivo, pega o nome dele
+        if(foto!=null) {
             acceptData.setPath(foto.getOriginalFilename());
-            // Se quiser, poderia subir a nova imagem aqui:
-            // fileManagerController.uploadFile(foto);
-        } else {
-            acceptData.setPath(accept.getPath());
+            fileManagerController.uploadFile(foto);
+            //SE NÃO ENVIAR NENHUM ARQUIVO
         }
 
-        // Copia os campos atualizados
-        BeanUtils.copyProperties(acceptData, accept,
-                "id", "dataAccept", "data_create", "time_create", "vessel", "user", "bercos");
+        // else {
+
+        //     acceptData.setPath(path);
+        // }
+
+        //copia os campos que eu setar de uma accept para acceptData - ja preenche logo
+        BeanUtils.copyProperties(acceptData, accept, "id", "dataAccept", "data_create", "time_accept", "time_create","vessel", "user", "bercos");
+
+//            if(acceptData.getPath()==null) {
+//                accept.setPath(path);
+//            }
+
+
 
         accept = acceptRepository.save(accept);
 
+//        } else {
+//            throw new NegocioException("Não tem permissão.");
+//        }
+
         var acceptResponse = acceptMapper.toAcceptResponse(accept);
+
+
+        //<ALTERAÇÕES 22/11/25[->>] >
+
+        String msg =
+                "ID DO ACEITE: "+accept.getId()+"\n"+
+                        "IMO DO NAVIO: "+accept.getVessel().getImo()+"\n"+
+                        "BERCOS AUTORIZADOS: "+accept.getBercos()+"\n"+
+                        "STATUS ATUAL DO ACEITE: "+accept.getStatus()+"\n"+
+                        "COMENTÁRIO RESPOSTA(PORTO): "+accept.getRestricoes()+"\n"+
+                        "DATA E HORA DESTA RESPOSTA: "+accept.getData_update()+", "+ accept.getTime_update();
+
+        emailService.enviarEmailTexto(accept.getUser().getEmail(), "Aceite de Navio - RESPOSTA PRA SUA SOLICITAÇÃO", msg);
+
+        //<ALTERAÇÕES 22/11/25[->>]  >
+
+
+
+
         return acceptAssembler.toModel(acceptResponse);
+
     }
-
-
 
     @DeleteMapping("/{id}")
 //    @TWJobsPermissions.IsOwner
