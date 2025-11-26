@@ -269,7 +269,7 @@ public class AcceptRestController {
                 "ID DO ACEITE: "+accept.getId()+"\n"+
                         "IMO DO NAVIO: "+accept.getVessel().getImo()+"\n"+
                         "BERCOS AUTORIZADOS: "+accept.getBercos()+"\n"+
-                        "STATUS ATUAL DO ACEITE: "+accept.getStatus()+"\n"+
+                        "STATUS ATUAL DO ACEITE: " + traduzStatus(accept.getStatus()) + "\n" +
                         "COMENTÁRIO RESPOSTA(PORTO): "+accept.getRestricoes()+"\n"+
                         "DATA E HORA DESTA RESPOSTA: "+accept.getData_update()+", "+ accept.getTime_update();
 
@@ -282,6 +282,16 @@ public class AcceptRestController {
 
         return acceptAssembler.toModel(acceptResponse);
 
+    }
+    private String traduzStatus(String status) {
+        switch (status) {
+            case "Y": return "Navio Aceito";
+            case "NE": return "Aceite Negado";
+            case "YR": return "Aceito com Restrição";
+            case "N": return "Em processamento";
+            case "EM": return "Em avaliação";
+            default: return "Status desconhecido";
+        }
     }
 
     @DeleteMapping("/{id}")
