@@ -5,18 +5,19 @@ import br.com.treinaweb.twjobs.api.accepts.assemblers.AcceptAssembler;
 import br.com.treinaweb.twjobs.api.accepts.dtos.AcceptRequest;
 import br.com.treinaweb.twjobs.api.accepts.dtos.AcceptResponse;
 import br.com.treinaweb.twjobs.api.accepts.mappers.AcceptMapper;
-import br.com.treinaweb.twjobs.api.bercos.dtos.BercoResponse;
 import br.com.treinaweb.twjobs.api.file.FileManagerController;
 import br.com.treinaweb.twjobs.core.enums.Role;
 import br.com.treinaweb.twjobs.core.enums.VeriStatus;
 import br.com.treinaweb.twjobs.core.exceptions.AcceptNotFoundException;
 import br.com.treinaweb.twjobs.core.exceptions.NegocioException;
 import br.com.treinaweb.twjobs.core.models.Accept;
+import br.com.treinaweb.twjobs.core.models.Berco;
 import br.com.treinaweb.twjobs.core.models.User;
 import br.com.treinaweb.twjobs.core.models.Vessel;
 import br.com.treinaweb.twjobs.core.permissions.TWJobsPermissions;
 import br.com.treinaweb.twjobs.core.repositories.AcceptCustomRepository;
 import br.com.treinaweb.twjobs.core.repositories.AcceptRepository;
+import br.com.treinaweb.twjobs.core.repositories.UserRepository;
 import br.com.treinaweb.twjobs.core.repositories.VesselRepository;
 import br.com.treinaweb.twjobs.core.service.CadastroAcceptService;
 import br.com.treinaweb.twjobs.core.service.EmailService;
@@ -24,12 +25,11 @@ import br.com.treinaweb.twjobs.core.services.auth.SecurityService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -64,8 +64,6 @@ public class AcceptRestController {
     private final SecurityService securityService;
     private final PagedResourcesAssembler<AcceptResponse> pagedResourcesAssembler;
 
-
-
     private final CadastroAcceptService cadastroAcceptService;
 
     private final AcceptCustomRepository acceptCustomRepository;
@@ -73,8 +71,17 @@ public class AcceptRestController {
 
     private final FileManagerController fileManagerController;
 
+
+    //<ALTERAÇÕES 05/01/26[->>] >
+    private final UserRepository userRepository;
+    //<ALTERAÇÕES 05/01/26[<<-] >
+
+    //<ALTERAÇÕES 22/11/25[->>] >
+
     @Autowired
     private EmailService emailService;
+
+    //</ALTERAÇÕES 22/11/25[->>] >
 
     @Autowired
     private ObjectMapper mapper;
@@ -87,26 +94,41 @@ public class AcceptRestController {
         return acceptRepository.countAllAccepts();
     }
 
-    @GetMapping("/sem-paginacao")
-    public CollectionModel<EntityModel<AcceptResponse>> findAllSemPaginacao() {
-        List<AcceptResponse> lista = acceptRepository.findAll(Sort.by(Sort.Direction.DESC, "id")).stream()
-                .map(acceptMapper::toAcceptResponse)
-                .collect(Collectors.toList());
-        return acceptAssembler.toCollectionModel(lista);
-    }
 
+    //"@PageableDefault(value = 7)" tamanho local para o tamanho da paginação. Deve ser igual ou menor ao valor encontrado no "application.properties"
     @GetMapping
-    public CollectionModel<EntityModel<AcceptResponse>> findAll(@PageableDefault(size = 15) Pageable pageable) {
+    public CollectionModel<EntityModel<AcceptResponse>> findAll(@PageableDefault(value = 15) Pageable pageable) {
 
-        Pageable ordenado = PageRequest.of(pageable.getPageNumber(),
-                pageable.getPageSize(),
-                Sort.by("id").descending());
+        User user = securityService.getCurrentUser();
+        Long userId = user.getId();
 
-        var accepts = acceptRepository.findAll(ordenado)
-                .map(acceptMapper::toAcceptResponse);
 
+//        if (user.getRole().equals(Role.COMPANY)) {
+//            throw new NegocioException("É company");
+        var accepts = acceptRepository.findAll(pageable)
+                // findAll(pageable)
+                .map(acceptMapper::toAcceptResponse) ;
         return pagedResourcesAssembler.toModel(accepts, acceptAssembler);
+//        } else if (user.getRole().equals(Role.CANDIDATE)) {
+////            throw new NegocioException("É candidate");
+//            var accepts = acceptRepository.findAllByUserId(pageable,userId)
+//                    .map(acceptMapper::toAcceptResponse);
+//            return pagedResourcesAssembler.toModel(accepts, acceptAssembler);
+//
+//        }
+
+
+//        Page<AcceptResponse>
+//                accepts = acceptRepository.findAllByUserId(pageable,userId)
+//                .map(acceptMapper::toAcceptResponse);
+//
+//
+//        AJEITAR
+//        return null;
+//        return pagedResourcesAssembler.toModel(accepts, acceptAssembler);
     }
+
+
 
 
 
@@ -117,14 +139,14 @@ public class AcceptRestController {
                                          @RequestParam(value = "nome", required = false) String nome,
                                          @RequestParam(value = "categoria", required = false) String categoria,
                                          @RequestParam(value = "dataInicio", required = false)
-                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+                                         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
                                          @RequestParam(value = "dataFim", required = false)
-                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim) {
-            List<AcceptResponse> accepts = acceptCustomRepository.acceptsCustom(id, imo, status, nome, categoria, dataInicio,dataFim)
-                    .stream()
-                    .map(acceptMapper::toAcceptResponse)
-                    .collect(Collectors.toList());
-            return accepts;
+                                         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim) {
+        List<AcceptResponse> accepts = acceptCustomRepository.acceptsCustom(id, imo, status, nome, categoria, dataInicio,dataFim)
+                .stream()
+                .map(acceptMapper::toAcceptResponse)
+                .collect(Collectors.toList());
+        return accepts;
     }
 
 
@@ -136,7 +158,7 @@ public class AcceptRestController {
         Accept accept;
 
         if(user.getRole()==Role.COMPANY) {
-           accept = acceptRepository.findById(id)
+            accept = acceptRepository.findById(id)
                     .orElseThrow(AcceptNotFoundException::new);
         } else {
             accept = acceptRepository.findByIdAndUserId(id, userId)
@@ -153,10 +175,8 @@ public class AcceptRestController {
     @PostMapping
     @ResponseStatus(code = HttpStatus.CREATED)
     public EntityModel<AcceptResponse>
-     create(@Valid @RequestParam(name="acceptRequestForm", required=true) String acceptRequestForm,  @RequestParam(name="foto", required=false) MultipartFile foto) throws JsonProcessingException {return cadastroAcceptService.salvar(acceptRequestForm, foto,"paulowrkstdy@gmail.com");}
+    create(@Valid @RequestParam(name="acceptRequestForm", required=true) String acceptRequestForm,  @RequestParam(name="foto", required=false) MultipartFile foto) throws JsonProcessingException {return cadastroAcceptService.salvar(acceptRequestForm, foto,"pauloacb2020@gmail.com");}
 //    renan.montenegro2018@gmail.com
-
-
 
     @PutMapping("/{id}")
     @TWJobsPermissions.IsCompany
@@ -262,22 +282,35 @@ public class AcceptRestController {
 
         var acceptResponse = acceptMapper.toAcceptResponse(accept);
 
+        //<ALTERAÇÕES 05/01/2026[->>]>
 
+        String destinatario_admin = String.valueOf(userRepository.findBySendEmail(Boolean.TRUE).get().getEmail());
+
+        String nome_bercos_autori = "";
+        for(Berco berco : accept.getBercos()) {
+            // GUARDA O NOME DOS BERCOS
+            nome_bercos_autori = nome_bercos_autori + berco.getNome() + ", ";
+        }
         //<ALTERAÇÕES 22/11/25[->>] >
+
+
 
         String msg =
                 "ID DO ACEITE: "+accept.getId()+"\n"+
                         "IMO DO NAVIO: "+accept.getVessel().getImo()+"\n"+
-                        "BERCOS AUTORIZADOS: "+accept.getBercos()+"\n"+
-                        "STATUS ATUAL DO ACEITE: " + traduzStatus(accept.getStatus()) + "\n" +
+                        "BERCOS AUTORIZADOS: "+nome_bercos_autori+"\n"+
+                        "STATUS ATUAL DO ACEITE: "+traduzStatus(accept.getStatus())+"\n"+
                         "COMENTÁRIO RESPOSTA(PORTO): "+accept.getRestricoes()+"\n"+
                         "DATA E HORA DESTA RESPOSTA: "+accept.getData_update()+", "+ accept.getTime_update();
 
-        emailService.enviarEmailTexto(accept.getUser().getEmail(), "Aceite de Navio - RESPOSTA PRA SUA SOLICITAÇÃO", msg);
+        emailService.enviarEmailTexto(accept.getUser().getEmail(), "Aceite do Navio " + accept.getVessel().getNome() +"  - RESPOSTA DA SOLICITAÇÃO DO USUÁRIO ", msg);
+        // ENVIAR CÓPIA PARA A COACE ->
+        emailService.enviarEmailTexto(destinatario_admin, "Aceite do Navio " + accept.getVessel().getNome() +"  - RESPOSTA DA SOLICITAÇÃO ", msg);
 
-        //<ALTERAÇÕES 22/11/25[->>]  >
 
 
+        //<ALTERAÇÕES 22/11/25[->>]>
+        //<ALTERAÇÕES 05/01/2026[<<-]>
 
 
         return acceptAssembler.toModel(acceptResponse);
@@ -293,7 +326,6 @@ public class AcceptRestController {
             default: return "Status desconhecido";
         }
     }
-
     @DeleteMapping("/{id}")
 //    @TWJobsPermissions.IsOwner
     @TWJobsPermissions.IsCompany

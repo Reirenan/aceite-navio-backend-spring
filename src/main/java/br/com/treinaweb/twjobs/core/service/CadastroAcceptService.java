@@ -275,10 +275,12 @@ public class CadastroAcceptService {
                             "STATUS INPUTADO PARA O ACEITE(SISTEMA): Em processamento"+"\n"+
                             "OBS DO USUÁRIO: "+accept.getObs()+"\n"+
                             "DATA CRIAÇÃO DO REGISTRO DE ACEITE: "+accept.getData_create()+"\n"+
-                            "DADOS DO USUÁRIO: "+"ID: "+user.getId()+" E-MAIL: "+user.getEmail()+" NOME: "+user.getName()+" PAPEL: "+user.getRole();
+                            "DADOS DO USUÁRIO: "+"ID: "+user.getId()+" E-MAIL: "+user.getEmail()+" NOME: "+user.getName()+" PAPEL: " + ("COMPANY".equals(user.getRole().name()) ? "ADMINISTRATIVO" : "USUÁRIO");
 
-            emailService.enviarEmailTexto(destinatario, "Aceite de Navio - BLOQUEADO", msg);
 
+            emailService.enviarEmailTexto(destinatario, "Aceite do Navio " + accept.getVessel().getNome() + " - STATUS: BLOQUEADO", msg);
+
+            emailService.enviarEmailTexto(accept.getUser().getEmail(), "Aceite do Navio " + accept.getVessel().getNome() + " - STATUS: BLOQUEADO", msg);
         } else if (!bercosCompativeis.isEmpty()) {
 
 // </PARTE NOVA>
@@ -305,10 +307,13 @@ public class CadastroAcceptService {
                             "STATUS INPUTADO PARA O ACEITE(SISTEMA): Aceito"+"\n"+
                             "OBS DO USUÁRIO: "+accept.getObs()+"\n"+
                             "DATA CRIAÇÃO DO REGISTRO DE ACEITE: "+accept.getData_create()+"\n"+
-                            "DADOS DO USUÁRIO: "+"ID: "+user.getId()+" E-MAIL: "+user.getEmail()+" NOME: "+user.getName()+" PAPEL: "+user.getRole();
+                            "DADOS DO USUÁRIO: "+"ID: "+user.getId()+" E-MAIL: "+user.getEmail()+" NOME: "+user.getName()+" PAPEL: " + ("COMPANY".equals(user.getRole().name()) ? "ADMINISTRATIVO" : "USUÁRIO");
 
-            emailService.enviarEmailTexto(destinatario, "Aceite de Navio - ACEITO", msg);
+            emailService.enviarEmailTexto(destinatario, "Aceite do Navio " + accept.getVessel().getNome() + " - STATUS: ACEITO", msg);
 // </PARTE-NOVA-2>
+
+            emailService.enviarEmailTexto(accept.getUser().getEmail(), "Aceite do Navio " + accept.getVessel().getNome() + " - STATUS: ACEITO", msg);
+
 
 
 
@@ -321,25 +326,26 @@ public class CadastroAcceptService {
         } else {
 //            id, imo, user, status, obs, data de criacao, local hospedagem + URIs
             if(blackListed) {
-                msg =       "ID DO ACEITE: "+currentAcceptId+"\n"+
+                msg =   "ID DO ACEITE: "+currentAcceptId+"\n"+
                         "IMO DO NAVIO: "+accept.getImo()+"\n"+
                         "CAUSA IDENTIFICADA(SISTEMA): Navio problemático, está na BLACK LIST!"+"\n"+
                         "STATUS INPUTADO PARA O ACEITE(SISTEMA): Em processamento"+"\n"+
                         "OBS DO USUÁRIO: "+accept.getObs()+"\n"+
                         "DATA CRIAÇÃO DO REGISTRO DE ACEITE: "+accept.getData_create()+"\n"+
-                        "DADOS DO USUÁRIO: "+"ID: "+user.getId()+" E-MAIL: "+user.getEmail()+" NOME: "+user.getName()+" PAPEL: "+user.getRole();
+                        "DADOS DO USUÁRIO: "+"ID: "+user.getId()+" E-MAIL: "+user.getEmail()+" NOME: "+user.getName()+" PAPEL: " + ("COMPANY".equals(user.getRole().name()) ? "ADMINISTRATIVO" : "USUÁRIO");
             } else {
-                msg =       "ID DO ACEITE: "+currentAcceptId+"\n"+
+                msg =   "ID DO ACEITE: "+currentAcceptId+"\n"+
                         "IMO DO NAVIO: "+accept.getImo()+"\n"+
                         "CAUSA IDENTIFICADA(SISTEMA): Navio problemático, de acordo com categoria, loa, dwt e calados cadastrados, nenhum berço o comporta!"+"\n"+
                         "STATUS INPUTADO PARA O ACEITE(SISTEMA): Em processamento"+"\n"+
                         "OBS DO USUÁRIO: "+accept.getObs()+"\n"+
                         "DATA CRIAÇÃO DO REGISTRO DE ACEITE: "+accept.getData_create()+"\n"+
-                        "DADOS DO USUÁRIO: "+"ID: "+user.getId()+" E-MAIL: "+user.getEmail()+" NOME: "+user.getName()+" PAPEL: "+user.getRole();
+                        "DADOS DO USUÁRIO: "+"ID: "+user.getId()+" E-MAIL: "+user.getEmail()+" NOME: "+user.getName()+" PAPEL: " + ("COMPANY".equals(user.getRole().name()) ? "ADMINISTRATIVO" : "USUÁRIO");
 
 
             }
-            emailService.enviarEmailTexto(destinatario, "Aceite de Navio - BLOQUEADO", msg);
+            emailService.enviarEmailTexto(destinatario, "Aceite do Navio " + accept.getVessel().getNome() + " - STATUS: BLOQUEADO", msg);
+
             accept.setStatus("N");
 
         }
@@ -355,7 +361,7 @@ public class CadastroAcceptService {
                             "ID: " + user.getId() + "\n" +
                             "Nome: " + user.getName() + "\n" +
                             "E-mail: " + user.getEmail() + "\n" +
-                            "Papel: " + user.getRole();
+                            " PAPEL: " + ("COMPANY".equals(user.getRole().name()) ? "ADMINISTRATIVO" : "USUÁRIO");
 
             emailService.enviarEmailTexto(destinatario, "Solicitação de Aceite Cadastrada", msg);
 
@@ -452,6 +458,8 @@ public class CadastroAcceptService {
                 return "desconhecido";
         }
     }
+
+
 
 // Json de getStatusStatistics()
 //{
