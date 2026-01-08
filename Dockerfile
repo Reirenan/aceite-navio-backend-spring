@@ -4,7 +4,7 @@ COPY . /app
 RUN mvn clean package
 RUN ls /app/target
 
-FROM openjdk:21
+FROM openjdk:26-ea
 EXPOSE 8080
 RUN mkdir -p /app/arquivos && chmod 777 /app/arquivos
 COPY .env .
