@@ -6,6 +6,7 @@ import br.com.treinaweb.twjobs.api.accepts.dtos.AcceptRequest;
 import br.com.treinaweb.twjobs.api.accepts.dtos.AcceptResponse;
 import br.com.treinaweb.twjobs.api.accepts.mappers.AcceptMapper;
 import br.com.treinaweb.twjobs.api.file.FileManagerController;
+import br.com.treinaweb.twjobs.api.vessels.dtos.VesselResponse;
 import br.com.treinaweb.twjobs.core.enums.Role;
 import br.com.treinaweb.twjobs.core.enums.VeriStatus;
 import br.com.treinaweb.twjobs.core.exceptions.AcceptNotFoundException;
@@ -30,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -94,6 +96,13 @@ public class AcceptRestController {
         return acceptRepository.countAllAccepts();
     }
 
+    @GetMapping("/sem-paginacao")
+    public CollectionModel<EntityModel<AcceptResponse>> findAllSemPaginacao() {
+        List<AcceptResponse> lista = acceptRepository.findAll(Sort.by(Sort.Direction.DESC, "id")).stream()
+                .map(acceptMapper::toAcceptResponse)
+                .collect(Collectors.toList());
+        return acceptAssembler.toCollectionModel(lista);
+    }
 
     //"@PageableDefault(value = 7)" tamanho local para o tamanho da paginação. Deve ser igual ou menor ao valor encontrado no "application.properties"
     @GetMapping
