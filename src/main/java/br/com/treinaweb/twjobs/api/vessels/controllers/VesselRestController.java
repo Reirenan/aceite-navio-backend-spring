@@ -348,25 +348,48 @@ public class VesselRestController {
         vessel = vesselRepository.save(vessel);
         var vesselResponse = vesselMapper.toVesselResponse(vessel);
         String msg =
-                "ID DO NAVIO: " + vessel.getId() + "\n" +
-                        "IMO DO NAVIO: " + vessel.getImo() + "\n" +
-                        "DETALHES DO NAVIO (SISTEMA):\n" +
-                        "   Nome: " + (vessel.getNome() != null ? vessel.getNome() : "N/D") + "\n" +
-                        "   Categoria: " + (vessel.getCategoria() != null ? vessel.getCategoria() : "N/D") + "\n" +
-                        "   Bandeira: " + (vessel.getFlag() != null ? vessel.getFlag() : "N/D") + "\n" +
-                        "   MMSI: " + (vessel.getMmsi() != null ? vessel.getMmsi() : "N/D") + "\n" +
-                        "   LOA: " + (vessel.getLoa() != null ? vessel.getLoa() + " m" : "N/D") + "\n" +
-                        "   BOCA: " + (vessel.getBoca() != null ? vessel.getBoca() + " m" : "N/D") + "\n" +
-                        "   DWT: " + (vessel.getDwt() != null ? vessel.getDwt() + " t" : "N/D") + "\n" +
-                        "   Pontal: " + (vessel.getPontal() != null ? vessel.getPontal() + " m" : "N/D") + "\n" +
-                        "   Calado (Entrada): " + (vessel.getCalado_entrada() != null ? vessel.getCalado_entrada() + " m" : "N/D") + "\n" +
-                        "   Calado (Saída): " + (vessel.getCalado_saida() != null ? vessel.getCalado_saida() + " m" : "N/D") + "\n" +
-                        "   Calado Máximo: " + (vessel.getCalado_max() != null ? vessel.getCalado_max() + " m" : "N/D") + "\n" +
-                        "   Caminho do Arquivo: " + (vessel.getPath() != null ? vessel.getPath() : "Nenhum arquivo") + "\n" +
-                        "   Verificação do Sistema: " + (vessel.getSt_ver_vessel() != null ? vessel.getSt_ver_vessel() : "N/D") + "\n" +
-                        "\n" +
-                        "STATUS INPUTADO PARA O NAVIO(SISTEMA): " + (vessel.getStatus() != null ? vessel.getStatus() : "N/D") + "\n" +
-                        "OBS DO USUÁRIO: " + (vessel.getObs() != null ? vessel.getObs() : "Nenhuma");
+                "DADOS DO NAVIO\n\n" +
+
+                        "ID DO NAVIO: " + vessel.getId() + "\n" +
+                        "IMO DO NAVIO: " + vessel.getImo() + "\n\n" +
+
+                        "DETALHES DO NAVIO (SISTEMA)\n\n" +
+
+                        "Nome: " + (vessel.getNome() != null ? vessel.getNome() : "Não informado") + "\n" +
+
+                        "Categoria: " +
+                        (vessel.getCategoria() != null
+                                ? (vessel.getCategoria().equals("1") ? "Granel Sólido"
+                                : vessel.getCategoria().equals("2") ? "Granel Líquido"
+                                : vessel.getCategoria().equals("3") ? "Carga Geral"
+                                : "Não informado")
+                                : "Não informado") + "\n" +
+
+                        "MMSI: " + (vessel.getMmsi() != null ? vessel.getMmsi() : "Não informado") + "\n\n" +
+
+                        "DIMENSÕES DO NAVIO\n\n" +
+
+                        "LOA: " + (vessel.getLoa() != null ? vessel.getLoa() + " m" : "Não informado") + "\n" +
+                        "Boca: " + (vessel.getBoca() != null ? vessel.getBoca() + " m" : "Não informado") + "\n" +
+                        "DWT: " + (vessel.getDwt() != null ? vessel.getDwt() + " t" : "Não informado") + "\n" +
+                        "Pontal: " + (vessel.getPontal() != null ? vessel.getPontal() + " m" : "Não informado") + "\n\n" +
+
+                        "CALADOS\n\n" +
+
+                        "Calado de Entrada: " + (vessel.getCalado_entrada() != null ? vessel.getCalado_entrada() + " m" : "Não informado") + "\n" +
+                        "Calado de Saída: " + (vessel.getCalado_saida() != null ? vessel.getCalado_saida() + " m" : "Não informado") + "\n" +
+                        "Calado Máximo: " + (vessel.getCalado_max() != null ? vessel.getCalado_max() + " m" : "Não informado") + "\n\n" +
+
+                        "DOCUMENTOS\n\n" +
+
+                        "Arquivo: " + (vessel.getPath() != null ? vessel.getPath() : "Nenhum arquivo") + "\n\n" +
+
+                        "OBSERVAÇÕES DO USUÁRIO\n\n" +
+
+                        (vessel.getObs() != null ? vessel.getObs() : "Nenhuma");
+
+
+
 
 
 

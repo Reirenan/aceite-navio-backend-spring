@@ -82,7 +82,8 @@ public class CadastroAcceptService {
         String msg;
 
         //verifica extensao --> Desabilitado momentâneamente
-        String filename = foto.getOriginalFilename();
+        String filename =  System.currentTimeMillis() + "_" + foto.getOriginalFilename();
+
         // String filename = "Teste";
 
 
@@ -270,7 +271,6 @@ public class CadastroAcceptService {
                     "ID DO ACEITE: "+currentAcceptId+"\n"+
                             "IMO DO NAVIO: "+accept.getImo()+"\n"+
                             "CAUSA IDENTIFICADA(SISTEMA): Navio com RESTRIÇÃO! O Ag. Marítimo solicita atracação em berços específicos(excepcional)."+"\n"+
-                            "BERCOS COMPATÍVEIS(SISTEMA): "+nome_bercos_comp+"\n"+
                             "BERCOS SOLICITADOS(USUÁRIO): "+nome_bercos_restric+"\n"+
                             "STATUS INPUTADO PARA O ACEITE(SISTEMA): Em processamento"+"\n"+
                             "OBS DO USUÁRIO: "+accept.getObs()+"\n"+
@@ -279,8 +279,6 @@ public class CadastroAcceptService {
 
 
             emailService.enviarEmailTexto(destinatario, "Aceite do Navio " + accept.getVessel().getNome() + " - STATUS: BLOQUEADO", msg);
-
-            emailService.enviarEmailTexto(accept.getUser().getEmail(), "Aceite do Navio " + accept.getVessel().getNome() + " - STATUS: BLOQUEADO", msg);
         } else if (!bercosCompativeis.isEmpty()) {
 
 // </PARTE NOVA>

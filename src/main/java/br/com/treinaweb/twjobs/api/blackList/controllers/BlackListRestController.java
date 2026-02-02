@@ -13,10 +13,7 @@ import br.com.treinaweb.twjobs.core.models.Accept;
 import br.com.treinaweb.twjobs.core.models.BlackList;
 import br.com.treinaweb.twjobs.core.models.User;
 import br.com.treinaweb.twjobs.core.permissions.TWJobsPermissions;
-import br.com.treinaweb.twjobs.core.repositories.AcceptRepository;
-import br.com.treinaweb.twjobs.core.repositories.BlackListCustomRepository;
-import br.com.treinaweb.twjobs.core.repositories.BlackListRepository;
-import br.com.treinaweb.twjobs.core.repositories.VesselRepository;
+import br.com.treinaweb.twjobs.core.repositories.*;
 import br.com.treinaweb.twjobs.core.service.CadastroAcceptService;
 import br.com.treinaweb.twjobs.core.service.EmailService;
 import br.com.treinaweb.twjobs.core.services.auth.SecurityService;
@@ -31,6 +28,8 @@ import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -55,7 +54,7 @@ public class BlackListRestController {
     private final BlackListRepository blackListRepository;
     private final SecurityService securityService;
     private final PagedResourcesAssembler<BlackListResponse> pagedResourcesAssembler;
-
+    private final UserRepository userRepository;
     private final CadastroAcceptService cadastroAcceptService;
     private final BlackListCustomRepository blackListCustomRepository;
 
@@ -165,44 +164,80 @@ public class BlackListRestController {
     @PostMapping
     @TWJobsPermissions.IsCompany
     @ResponseStatus(code = HttpStatus.CREATED)
-    public EntityModel<BlackListResponse> create(@RequestBody @Valid BlackListRequest blackListRequest) {
+    public EntityModel<BlackListResponse> create(
+            @RequestBody @Valid BlackListRequest blackListRequest
+    ) {
 
         var blackList = blackListMapper.toBlackList(blackListRequest);
 
         var vessel = vesselRepository.findByImo(blackList.getImo());
 
-
-//      """Setando as datas de alteração"""
-        blackList.setData_blacklisted(String.valueOf(LocalDate.now()+" "+ LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))));
-        blackList.setData_create(String.valueOf(LocalDate.now()+" "+ LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))));
+        // =========================
+        // DATAS (EXATAMENTE COMO ESTAVA)
+        // =========================
+        blackList.setData_blacklisted(
+                String.valueOf(LocalDate.now() + " " +
+                        LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")))
+        );
+        blackList.setData_create(
+                String.valueOf(LocalDate.now() + " " +
+                        LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")))
+        );
         blackList.setData_update(String.valueOf(LocalDate.now()));
 
-        blackList.setTime_blacklisted(String.valueOf(LocalDate.now()+" "+ LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))));
-        blackList.setTime_create(String.valueOf(LocalDate.now()+" "+ LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))));
-        blackList.setTime_update(String.valueOf(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))));
+        blackList.setTime_blacklisted(
+                String.valueOf(LocalDate.now() + " " +
+                        LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")))
+        );
+        blackList.setTime_create(
+                String.valueOf(LocalDate.now() + " " +
+                        LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")))
+        );
+        blackList.setTime_update(
+                String.valueOf(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")))
+        );
 
-//        blackList.setMmsi(vessel.get().getMmsi());
-//        blackList.setNome(vessel.get().getNome());
-//        blackList.setLoa(vessel.get().getLoa());
-//        blackList.setBoca(vessel.get().getBoca());
-//        blackList.setDwt(vessel.get().getDwt());
-//        blackList.setPontal(vessel.get().getPontal());
-//        blackList.setPonte_mfold(vessel.get().getPonte_mfold());
-//        blackList.setMfold_quilha(vessel.get().getMfold_quilha());
-//        if(vessel.get().getCategoria() != null) {
-//            blackList.setCategoria(vessel.get().getCategoria());
-//        } else {
-//            blackList.setCategoria("nao informado");
-//        }
-//
-//        blackList.setFlag(Integer.valueOf(vessel.get().getFlag()));
-//        blackList.setCalado_entrada(vessel.get().getCalado_entrada());
-//        blackList.setCalado_saida(vessel.get().getCalado_saida());
-
+        // =========================
+        // SAVE (NÃO TOQUEI)
+        // =========================
         blackList = blackListRepository.save(blackList);
+
+        // =====================================================
+        // >>> ÚNICA COISA NOVA: EMAIL PARA ADMIN SUPREMO <<<
+        // =====================================================
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+
+
+        User destinatarioUser = userRepository.findBySendEmail(Boolean.TRUE)
+                .orElseGet(() -> {
+                    User fallback = new User();
+                    fallback.setEmail("suporte@sistema.com");
+                    return fallback;
+                });
+
+        String msg =
+                "IDENTIFICADOR DO NAVIO NA BLACKLIST: " + blackList.getId() + "\n" +
+                        "IMO DO NAVIO: " + blackList.getImo() + "\n\n" +
+                        "COMENTÁRIO: " + blackList.getReason() + "\n\n" +
+                        "DATA DE REGISTRO DO NAVIO PROBLEMÁTICO: " + blackList.getData_create() + "\n";
+
+
+
+        emailService.enviarEmailTexto(
+                destinatarioUser.getEmail(),
+                "Navio adicionado à Blacklist",
+                msg
+        );
+
+        // =========================
+        // RESPONSE (NÃO TOQUEI)
+        // =========================
         var vesselResponse = blackListMapper.toBlackListResponse(blackList);
         return blackListAssembler.toModel(vesselResponse);
     }
+
 
 
 

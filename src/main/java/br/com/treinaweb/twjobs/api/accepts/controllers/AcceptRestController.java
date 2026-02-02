@@ -304,13 +304,40 @@ public class AcceptRestController {
 
 
 
-        String msg =
-                "ID DO ACEITE: "+accept.getId()+"\n"+
-                        "IMO DO NAVIO: "+accept.getVessel().getImo()+"\n"+
-                        "BERCOS AUTORIZADOS: "+nome_bercos_autori+"\n"+
-                        "STATUS ATUAL DO ACEITE: "+traduzStatus(accept.getStatus())+"\n"+
-                        "COMENTÁRIO RESPOSTA(PORTO): "+accept.getRestricoes()+"\n"+
-                        "DATA E HORA DESTA RESPOSTA: "+accept.getData_update()+", "+ accept.getTime_update();
+        String msg = "";
+
+// ID DO ACEITE
+        if (accept.getId() != null) {
+            msg = msg + "ID DO ACEITE: " + accept.getId() + "\n\n";
+        }
+
+// IMO DO NAVIO
+        if (accept.getVessel() != null && accept.getVessel().getImo() != null && !accept.getVessel().getImo().equals("")) {
+            msg = msg + "IMO DO NAVIO: " + accept.getVessel().getImo() + "\n\n";
+        }
+
+// BERÇOS AUTORIZADOS
+        if ("Y".equals(accept.getStatus()) && nome_bercos_autori != null && !nome_bercos_autori.equals("")) {
+            msg = msg + "BERÇOS AUTORIZADOS: " + nome_bercos_autori + "\n\n";
+        }
+
+// STATUS ATUAL DO ACEITE
+        if (accept.getStatus() != null) {
+            msg = msg + "STATUS ATUAL DO ACEITE: " + traduzStatus(accept.getStatus()) + "\n\n";
+        }
+
+// COMENTÁRIO RESPOSTA (PORTO)
+        if (accept.getRestricoes() != null && !accept.getRestricoes().equals("")) {
+            msg = msg + "COMENTÁRIO RESPOSTA (PORTO): " + accept.getRestricoes() + "\n\n";
+        }
+
+// DATA E HORA
+        if (accept.getData_update() != null && accept.getTime_update() != null) {
+            msg = msg + "DATA E HORA DESTA RESPOSTA: "
+                    + accept.getData_update() + ", " + accept.getTime_update();
+        }
+
+
 
         emailService.enviarEmailTexto(accept.getUser().getEmail(), "Aceite do Navio " + accept.getVessel().getNome() +"  - RESPOSTA DA SOLICITAÇÃO DO USUÁRIO ", msg);
         // ENVIAR CÓPIA PARA A COACE ->
