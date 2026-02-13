@@ -17,7 +17,6 @@ public interface VesselRepository extends JpaRepository<Vessel, Long> {
     List<Vessel> findByNome(String nome);
     List<Vessel> findByNomeContaining(String nome);
     Optional<Vessel> findByImo(Long imo);
-
     Optional<Vessel> findByImoAndUserId(Long imo, Long userId);
 
 //    Vessel findByImo(Long imo);
@@ -32,6 +31,7 @@ public interface VesselRepository extends JpaRepository<Vessel, Long> {
     @Query("SELECT COUNT(u) FROM Vessel u")
     Long countAllVessels();
 
+    Optional<Vessel> findTopByImoOrderByIdDesc(Long imo);
 
 //    Vessel findAllByUser(User user);
 

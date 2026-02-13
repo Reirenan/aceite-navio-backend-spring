@@ -248,7 +248,6 @@ public class VesselRestController {
 ////                pathsList.add(foto.getOriginalFilename());
 //            }
 //        }
-
         //verifica extensao
         String filename = foto.getOriginalFilename();
         String extension = null;
@@ -292,6 +291,11 @@ public class VesselRestController {
 
 //        var vessel = vesselMapper.toVessel(vesselRequestForm);
         var vessel = vesselMapper.toVessel(vesselRequest);
+
+        if(vesselRepository.existsByImo(vessel.getImo()) == Boolean.TRUE){
+            throw new NegocioException("O IMO já está cadastrado.");
+        }
+
 
 //        if (!pathsList.isEmpty()) {
 //            vessel.setPath(String.join("/%", pathsList)); // Adiciona todas as URLs, separadas por vírgula, por exemplo

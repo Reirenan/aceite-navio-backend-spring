@@ -24,7 +24,8 @@ public class VesselDataRestController {
     @GetMapping("{imo}")
     EntityModel<VesselResponse> ReturnVDataByImo(@PathVariable Long imo){
 
-        var vessel = vesselRepository.findByImo(imo)
+        var vessel = vesselRepository
+                .findTopByImoOrderByIdDesc(imo)
                 .orElseThrow(VesselNotFoundException::new);
 
         var vesselResponse = vesselMapper.toVesselResponse(vessel);
