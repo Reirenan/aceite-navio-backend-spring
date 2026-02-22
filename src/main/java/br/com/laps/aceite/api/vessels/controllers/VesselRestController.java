@@ -1,6 +1,6 @@
 package br.com.laps.aceite.api.vessels.controllers;
 
-
+import br.com.laps.aceite.api.accepts.dtos.AcceptResponse;
 import br.com.laps.aceite.api.file.FileManagerController;
 import br.com.laps.aceite.api.vessels.assembler.VesselAssembler;
 import br.com.laps.aceite.api.vessels.dtos.VesselRequest;
@@ -66,13 +66,13 @@ public class VesselRestController {
 
     private final UserRepository userRepository;
 
-
     @Autowired
     private ObjectMapper mapper;
 
     @Autowired
     private final Disco disco;
 
+    @PortoUsersPermissions.IsAgenteNavio
     @GetMapping("/sem-paginacao")
     public CollectionModel<EntityModel<VesselResponse>> findAllSemPaginacao() {
         List<VesselResponse> lista = vesselRepository.findAll(Sort.by(Sort.Direction.DESC, "id")).stream()
@@ -82,124 +82,123 @@ public class VesselRestController {
         return vesselAssembler.toCollectionModel(lista);
     }
 
-    public void check_user(Vessel vessel){
+    public void check_user(Vessel vessel) {
 
-        if(securityService.getCurrentUser() != vessel.getUser() ) {
+        if (securityService.getCurrentUser() != vessel.getUser()) {
             throw new NegocioException("Você não é proprietário do dado.");
         }
     }
 
-
+    @PortoUsersPermissions.IsAgenteNavio
     @GetMapping
     public CollectionModel<EntityModel<VesselResponse>> findAll(@PageableDefault(value = 15) Pageable pageable) {
-        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("id").descending());
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                Sort.by("id").descending());
 
         User user = securityService.getCurrentUser();
         Long userId = user.getId();
 
-//        if (user.getRole().equals(Role.COMPANY)) {
-            // throw new NegocioException("É company");
-            var vessels = vesselRepository.findAll(sortedPageable)
-                    .map(vesselMapper::toVesselResponse);
-            return pagedResourcesAssembler.toModel(vessels, vesselAssembler);
-//        } else if (user.getRole().equals(Role.CANDIDATE)) {
-//            // throw new NegocioException("É candidate");
-//            var vessels = vesselRepository.findAllByUserId(pageable, userId)
-//                    .map(vesselMapper::toVesselResponse);
-//            return pagedResourcesAssembler.toModel(vessels, vesselAssembler);
-//        }
-
-//        return null;
-        // return pagedResourcesAssembler.toModel(vessels, vesselAssembler);
+        // if (user.getRole().equals(Role.COMPANY)) {
+        // throw new NegocioException("É company");
+        var vessels = vesselRepository.findAll(sortedPageable)
+                .map(vesselMapper::toVesselResponse);
+        return pagedResourcesAssembler.toModel(vessels, vesselAssembler);
     }
 
+    // } else if (user.getRole().equals(Role.CANDIDATE)) {
+    // // throw new NegocioException("É candidate");
+    // var vessels = vesselRepository.findAllByUserId(pageable, userId)
+    // .map(vesselMapper::toVesselResponse);
+    // return pagedResourcesAssembler.toModel(vessels, vesselAssembler);
+    // }
 
-//          """
-//          Esse método retorna apenas os Vessels do Usuário. role CANDIDATE pra cima.
-//
-//                           """
-//    @GetMapping
-//    public CollectionModel<EntityModel<VesselResponse>> findAll(@PageableDefault(value = 15) Pageable pageable) {
-////
-//        User user = securityService.getCurrentUser();
-//        Long userId = user.getId();
-//
-////        Precisa do Optional
-//        Page<VesselResponse>
-//                vessels = vesselRepository.findAllByUserId(pageable,userId)
-//                .map(vesselMapper::toVesselResponse);
-////                   .orElseThrow(VesselNotFoundException::new);
-//
-//        return pagedResourcesAssembler.toModel(vessels, vesselAssembler);
-//    }
-//
-//
-////       """
-////          Esse método retorna todos os Vessels. `apenas` role COMPANY
-////
-////                          """
-//    @GetMapping("/admin")
-//    @TWJobsPermissions.IsCompany
-//    public CollectionModel<EntityModel<VesselResponse>> admFindAll(@PageableDefault(value = 15) Pageable pageable) {
-//
-//
-//        var vessels = vesselRepository.findAll(pageable)
-//                .map(vesselMapper::toVesselResponse);
-////                  .orElseThrow(VesselNotFoundException::new);
-//
-//        return pagedResourcesAssembler.toModel(vessels, vesselAssembler);
-//    }
-//
-//
-//
-//
-//    @GetMapping("/{id}")
-//    public EntityModel<VesselResponse> findById(@PathVariable Long id) {
-//
-//        var vessel = vesselRepository.findById(id)
-//                .orElseThrow(VesselNotFoundException::new);
-//
-////        check_user(vessel);
-//
-//        var vesselResponse = vesselMapper.toVesselResponse(vessel);
-//        return vesselAssembler.toModel(vesselResponse);
-//    }
+    // return null;
+    // return pagedResourcesAssembler.toModel(vessels, vesselAssembler);
 
-//    @GetMapping("/{id}")
-//    public EntityModel<VesselResponse> findById(@PathVariable Long id) {
-//
-//        var vessel = vesselRepository.findById(id)
-//                .orElseThrow(VesselNotFoundException::new);
-//
-//        check_user(vessel);
-//
-//        var vesselResponse = vesselMapper.toVesselResponse(vessel);
-//        return vesselAssembler.toModel(vesselResponse);
-//    }
+    // """
+    // Esse método retorna apenas os Vessels do Usuário. role CANDIDATE pra cima.
+    //
+    // """
+    // @GetMapping
+    // public CollectionModel<EntityModel<VesselResponse>>
+    // findAll(@PageableDefault(value = 15) Pageable pageable) {
+    ////
+    // User user = securityService.getCurrentUser();
+    // Long userId = user.getId();
+    //
+    //// Precisa do Optional
+    // Page<VesselResponse>
+    // vessels = vesselRepository.findAllByUserId(pageable,userId)
+    // .map(vesselMapper::toVesselResponse);
+    //// .orElseThrow(VesselNotFoundException::new);
+    //
+    // return pagedResourcesAssembler.toModel(vessels, vesselAssembler);
+    // }
+    //
+    //
+    //// """
+    //// Esse método retorna todos os Vessels. `apenas` role COMPANY
+    ////
+    //// """
+    // @GetMapping("/admin")
+    // @TWJobsPermissions.IsCompany
+    // public CollectionModel<EntityModel<VesselResponse>>
+    // admFindAll(@PageableDefault(value = 15) Pageable pageable) {
+    //
+    //
+    // var vessels = vesselRepository.findAll(pageable)
+    // .map(vesselMapper::toVesselResponse);
+    //// .orElseThrow(VesselNotFoundException::new);
+    //
+    // return pagedResourcesAssembler.toModel(vessels, vesselAssembler);
+    // }
+    //
+    //
+    //
+    //
+    // @GetMapping("/{id}")
+    // public EntityModel<VesselResponse> findById(@PathVariable Long id) {
+    //
+    // var vessel = vesselRepository.findById(id)
+    // .orElseThrow(VesselNotFoundException::new);
+    //
+    //// check_user(vessel);
+    //
+    // var vesselResponse = vesselMapper.toVesselResponse(vessel);
+    // return vesselAssembler.toModel(vesselResponse);
+    // }
 
+    // @GetMapping("/{id}")
+    // public EntityModel<VesselResponse> findById(@PathVariable Long id) {
+    //
+    // var vessel = vesselRepository.findById(id)
+    // .orElseThrow(VesselNotFoundException::new);
+    //
+    // check_user(vessel);
+    //
+    // var vesselResponse = vesselMapper.toVesselResponse(vessel);
+    // return vesselAssembler.toModel(vesselResponse);
+    // }
+
+    @PortoUsersPermissions.IsAgenteNavio
     @GetMapping("statistics/count")
     public Long howMany() {
         return vesselRepository.countAllVessels();
     }
 
-
+    @PortoUsersPermissions.IsAgenteNavio
     @GetMapping("/custom")
     public List<Vessel> findTest(
             @RequestParam(value = "id", required = false) Long id,
             @RequestParam(value = "imo", required = false) Long imo,
             @RequestParam(value = "categoria", required = false) String categoria,
             @RequestParam(value = "nome", required = false) String nome,
-            @RequestParam(value = "dataInicio", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
-            @RequestParam(value = "dataFim", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim) {
+            @RequestParam(value = "dataInicio", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+            @RequestParam(value = "dataFim", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim) {
 
         List<Vessel> vessels = vesselCustomRepository.vesselsCustom(id, imo, categoria, nome, dataInicio, dataFim);
         return vessels;
     }
-
-
-
 
     @Value("${contato.disco.raiz}")
     private String raiz;
@@ -207,33 +206,26 @@ public class VesselRestController {
     @Value("${contato.disco.diretorio-fotos}")
     private String diretorioFotos;
 
-
     private static final String STORAGE_DIRECTORY = "C:\\StoragePorto";
-    
+
     @ResponseStatus(HttpStatus.CREATED)
-//    @TWJobsPermissions.IsCompany
+    @PortoUsersPermissions.IsAgenteNavio
     @PostMapping
-    public EntityModel<VesselResponse> create(@Valid @RequestParam(name="vesselRequestForm",
-                                                          required=true)
-                                                  String vesselRequestForm,
-                                              @RequestParam(name="foto", required=true)
-                                                  MultipartFile foto
-    ) throws JsonProcessingException {
+    public EntityModel<VesselResponse> create(
+            @Valid @RequestParam(name = "vesselRequestForm", required = true) String vesselRequestForm,
+            @RequestParam(name = "foto", required = true) MultipartFile foto) throws JsonProcessingException {
 
-
-
-//        List<String> pathsList = new ArrayList<>();
-
+        // List<String> pathsList = new ArrayList<>();
 
         // Itera sobre a lista de arquivos enviados
-//        for (MultipartFile foto : fotos) {
-//            if (!foto.isEmpty()) {
-////                     throw new NegocioException("Fotos não é vazio");
-//                fileManagerController.uploadFile(foto);
-////                pathsList.add(foto.getOriginalFilename());
-//            }
-//        }
-        //verifica extensao
+        // for (MultipartFile foto : fotos) {
+        // if (!foto.isEmpty()) {
+        //// throw new NegocioException("Fotos não é vazio");
+        // fileManagerController.uploadFile(foto);
+        //// pathsList.add(foto.getOriginalFilename());
+        // }
+        // }
+        // verifica extensao
         String filename = foto.getOriginalFilename();
         String extension = null;
         int dotIndex = filename.lastIndexOf(".");
@@ -241,18 +233,18 @@ public class VesselRestController {
             extension = filename.substring(dotIndex + 1);
         }
 
-        String[] extensions = {"txt", "zip", "pdf"};
+        String[] extensions = { "txt", "zip", "pdf" };
 
         Boolean verifica = false;
-        if(extension!=null) {
-            for(String i : extensions){
-                if(i.equals(extension) ) {
-                    verifica =true;
+        if (extension != null) {
+            for (String i : extensions) {
+                if (i.equals(extension)) {
+                    verifica = true;
                     break;
                 }
             }
 
-            if(!verifica){
+            if (!verifica) {
                 throw new NegocioException(extension);
             }
 
@@ -260,70 +252,67 @@ public class VesselRestController {
 
         fileManagerController.uploadFile(foto);
 
-
-
-//        String originalfilename = foto.getOriginalFilename();
-//
-//        disco.salvarFoto(foto, securityService.getCurrentUser(), originalfilename.substring(originalfilename.lastIndexOf("/")+1));
+        // String originalfilename = foto.getOriginalFilename();
+        //
+        // disco.salvarFoto(foto, securityService.getCurrentUser(),
+        // originalfilename.substring(originalfilename.lastIndexOf("/")+1));
 
         LocalDate date = LocalDate.now();
 
-//        ObjectMapper mapper = new ObjectMapper();
-//        mapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
-//        VesselRequest vesselRequestOk = mapper.readValue(vesselRequest, new TypeReference<VesselRequest>(){});
+        // ObjectMapper mapper = new ObjectMapper();
+        // mapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
+        // VesselRequest vesselRequestOk = mapper.readValue(vesselRequest, new
+        // TypeReference<VesselRequest>(){});
 
         VesselRequest vesselRequest = mapper.readValue(vesselRequestForm, VesselRequest.class);
 
-//        var vessel = vesselMapper.toVessel(vesselRequestForm);
+        // var vessel = vesselMapper.toVessel(vesselRequestForm);
         var vessel = vesselMapper.toVessel(vesselRequest);
 
-        if(vesselRepository.existsByImo(vessel.getImo()) == Boolean.TRUE){
+        if (vesselRepository.existsByImo(vessel.getImo()) == Boolean.TRUE) {
             throw new NegocioException("O IMO já está cadastrado.");
         }
 
+        // if (!pathsList.isEmpty()) {
+        // vessel.setPath(String.join("/%", pathsList)); // Adiciona todas as URLs,
+        // separadas por vírgula, por exemplo
+        // }
 
-//        if (!pathsList.isEmpty()) {
-//            vessel.setPath(String.join("/%", pathsList)); // Adiciona todas as URLs, separadas por vírgula, por exemplo
-//        }
-
-        if(foto!=null) {
+        if (foto != null) {
             vessel.setPath(foto.getOriginalFilename());
         }
 
-
-
-
-//        vessel.setPath(raiz+"\\"+diretorioFotos+"\\"+securityService.getCurrentUser().getId()+"--"+String.valueOf(date)+"."+foto.getContentType());
+        // vessel.setPath(raiz+"\\"+diretorioFotos+"\\"+securityService.getCurrentUser().getId()+"--"+String.valueOf(date)+"."+foto.getContentType());
 
         vessel.setUser(securityService.getCurrentUser());
-       //Tem que adicionar a validação se o tamanho do IMO é igual à 8.
+        // Tem que adicionar a validação se o tamanho do IMO é igual à 8.
 
-        int[] fator = {7, 6, 5, 4, 3, 2};
-
+        int[] fator = { 7, 6, 5, 4, 3, 2 };
 
         String imo = vessel.getImo();
 
         int[] newImo = new int[imo.length()];
-        for(int i = 0; i < imo.length(); i++) {
+        for (int i = 0; i < imo.length(); i++) {
             newImo[i] = imo.charAt(i) - '0';
         }
 
         int lastNumber = newImo[6];
 
-        int operation = (fator[0]*newImo[0])+(fator[1]*newImo[1])+(fator[2]*newImo[2])+(fator[3]*newImo[3])+(fator[4]*newImo[4])+(fator[5]*newImo[5]);
+        int operation = (fator[0] * newImo[0]) + (fator[1] * newImo[1]) + (fator[2] * newImo[2])
+                + (fator[3] * newImo[3]) + (fator[4] * newImo[4]) + (fator[5] * newImo[5]);
         String operation_str = Integer.toString(operation);
 
         int[] newOperation = new int[operation_str.length()];
-        for(int i = 0; i < operation_str.length(); i++) {
+        for (int i = 0; i < operation_str.length(); i++) {
             newOperation[i] = operation_str.charAt(i) - '0';
         }
 
         int nOpeLen = newOperation.length;
 
-//        if(lastNumber != newOperation[nOpeLen -1]) {
-//            throw new NegocioException("O IMO não segue o padrão");
+        // if(lastNumber != newOperation[nOpeLen -1]) {
+        // throw new NegocioException("O IMO não segue o padrão");
 
-//        }
+        // }
         User destinatarioUser = userRepository.findBySendEmail(Boolean.TRUE)
                 .orElseGet(() -> {
                     User fallback = new User();
@@ -335,114 +324,104 @@ public class VesselRestController {
 
         vessel = vesselRepository.save(vessel);
         var vesselResponse = vesselMapper.toVesselResponse(vessel);
-        String msg =
-                "DADOS DO NAVIO\n\n" +
+        String msg = "DADOS DO NAVIO\n\n" +
 
-                        "ID DO NAVIO: " + vessel.getId() + "\n" +
-                        "IMO DO NAVIO: " + vessel.getImo() + "\n\n" +
+                "ID DO NAVIO: " + vessel.getId() + "\n" +
+                "IMO DO NAVIO: " + vessel.getImo() + "\n\n" +
 
-                        "DETALHES DO NAVIO (SISTEMA)\n\n" +
+                "DETALHES DO NAVIO (SISTEMA)\n\n" +
 
-                        "Nome: " + (vessel.getNome() != null ? vessel.getNome() : "Não informado") + "\n" +
+                "Nome: " + (vessel.getNome() != null ? vessel.getNome() : "Não informado") + "\n" +
 
-                        "Categoria: " +
-                        (vessel.getCategoria() != null
-                                ? (vessel.getCategoria().equals("1") ? "Granel Sólido"
+                "Categoria: " +
+                (vessel.getCategoria() != null
+                        ? (vessel.getCategoria().equals("1") ? "Granel Sólido"
                                 : vessel.getCategoria().equals("2") ? "Granel Líquido"
-                                : vessel.getCategoria().equals("3") ? "Carga Geral"
-                                : "Não informado")
-                                : "Não informado") + "\n" +
+                                        : vessel.getCategoria().equals("3") ? "Carga Geral"
+                                                : "Não informado")
+                        : "Não informado")
+                + "\n" +
 
-                        "MMSI: " + (vessel.getMmsi() != null ? vessel.getMmsi() : "Não informado") + "\n\n" +
+                "MMSI: " + (vessel.getMmsi() != null ? vessel.getMmsi() : "Não informado") + "\n\n" +
 
-                        "DIMENSÕES DO NAVIO\n\n" +
+                "DIMENSÕES DO NAVIO\n\n" +
 
-                        "LOA: " + (vessel.getLoa() != 0 ? vessel.getLoa() + " m" : "Não informado") + "\n" +
-                        "Boca: " + (vessel.getBoca() != 0 ? vessel.getBoca() + " m" : "Não informado") + "\n" +
-                        "DWT: " + (vessel.getDwt() != 0 ? vessel.getDwt() + " t" : "Não informado") + "\n" +
-                        "Pontal: " + (vessel.getPontal() != 0 ? vessel.getPontal() + " m" : "Não informado") + "\n\n" +
+                "LOA: " + (vessel.getLoa() != 0 ? vessel.getLoa() + " m" : "Não informado") + "\n" +
+                "Boca: " + (vessel.getBoca() != 0 ? vessel.getBoca() + " m" : "Não informado") + "\n" +
+                "DWT: " + (vessel.getDwt() != 0 ? vessel.getDwt() + " t" : "Não informado") + "\n" +
+                "Pontal: " + (vessel.getPontal() != 0 ? vessel.getPontal() + " m" : "Não informado") + "\n\n" +
 
-                        "CALADOS\n\n" +
+                "CALADOS\n\n" +
 
-                        "Calado de Entrada: " + (vessel.getCalado_entrada() != 0 ? vessel.getCalado_entrada() + " m" : "Não informado") + "\n" +
-                        "Calado de Saída: " + (vessel.getCalado_saida() != 0 ? vessel.getCalado_saida() + " m" : "Não informado") + "\n" +
-                        "Calado Máximo: " + (vessel.getCalado_max() != 0 ? vessel.getCalado_max() + " m" : "Não informado") + "\n\n" +
+                "Calado de Entrada: "
+                + (vessel.getCalado_entrada() != 0 ? vessel.getCalado_entrada() + " m" : "Não informado") + "\n" +
+                "Calado de Saída: "
+                + (vessel.getCalado_saida() != 0 ? vessel.getCalado_saida() + " m" : "Não informado") + "\n" +
+                "Calado Máximo: " + (vessel.getCalado_max() != 0 ? vessel.getCalado_max() + " m" : "Não informado")
+                + "\n\n" +
 
-                        "DOCUMENTOS\n\n" +
+                "DOCUMENTOS\n\n" +
 
-                        "Arquivo: " + (vessel.getPath() != null ? vessel.getPath() : "Nenhum arquivo") + "\n\n" +
+                "Arquivo: " + (vessel.getPath() != null ? vessel.getPath() : "Nenhum arquivo") + "\n\n" +
 
-                        "OBSERVAÇÕES DO USUÁRIO\n\n" +
+                "OBSERVAÇÕES DO USUÁRIO\n\n" +
 
-                        (vessel.getObs() != null ? vessel.getObs() : "Nenhuma");
-
-
-
-
-
+                (vessel.getObs() != null ? vessel.getObs() : "Nenhuma");
 
         emailService.enviarEmailTexto(destinatario, "Navio Cadastrado no Sistema", msg);
 
         return vesselAssembler.toModel(vesselResponse);
     }
 
+    /*
+     * @GetMapping
+     * 
+     * @TWJobsPermissions.IsCompany
+     * public List<Vessel> listar() {
+     * 
+     * return vesselRepository.findAll();
+     * }
+     */
 
-   /* @GetMapping
-    @TWJobsPermissions.IsCompany
-    public List<Vessel> listar() {
+    /*
+     * @PutMapping("/{vesselId}")
+     * public ResponseEntity<Vessel> atualizar(@Valid @PathVariable Long
+     * vesselId, @Valid @RequestBody Vessel vessel) {
+     * 
+     * if(!vesselRepository.existsById(vesselId)) {
+     * return ResponseEntity.notFound().build();
+     * }
+     * 
+     * vessel.setId(vesselId);
+     * 
+     * 
+     * 
+     * vessel.setSt_ver_vessel(VeriStatus.valueOf("N"));
+     * 
+     * Vessel vesselAtualizado = cadastroVesselService.salvar(vessel);
+     * 
+     * return ResponseEntity.ok(vesselAtualizado);
+     * 
+     * 
+     * }
+     */
 
-        return vesselRepository.findAll();
-    }*/
-
-
-
-  /*  @PutMapping("/{vesselId}")
-    public ResponseEntity<Vessel> atualizar(@Valid @PathVariable Long vesselId, @Valid @RequestBody Vessel vessel) {
-
-        if(!vesselRepository.existsById(vesselId)) {
-            return ResponseEntity.notFound().build();
-        }
-
-        vessel.setId(vesselId);
-
-
-
-        vessel.setSt_ver_vessel(VeriStatus.valueOf("N"));
-
-        Vessel vesselAtualizado = cadastroVesselService.salvar(vessel);
-
-        return ResponseEntity.ok(vesselAtualizado);
-
-
-    }*/
-
-
-
-
-
-
-
+    @PortoUsersPermissions.IsAgenteNavio
     @PutMapping("/{id}")
-//    @TWJobsPermissions.IsOwner
-//    @TWJobsPermissions.IsCompany
     public EntityModel<VesselResponse> update(
-//            @RequestBody @Valid VesselRequest vesselRequest,
-//            @PathVariable Long id
+            // @RequestBody @Valid VesselRequest vesselRequest,
+            // @PathVariable Long id
 
-            @Valid @RequestParam(name="vesselRequestForm", required=true) String vesselRequestForm, @PathVariable Long id,  @RequestParam(name="foto", required=false) MultipartFile foto
-    ) throws JsonProcessingException {
+            @Valid @RequestParam(name = "vesselRequestForm", required = true) String vesselRequestForm,
+            @PathVariable Long id, @RequestParam(name = "foto", required = false) MultipartFile foto)
+            throws JsonProcessingException {
         VesselRequest vesselRequest = mapper.readValue(vesselRequestForm, VesselRequest.class);
-
 
         var vessel = vesselRepository.findById(id)
                 .orElseThrow(AceiteNotFoundException::new);
 
         var vesselData = vesselMapper.toVessel(vesselRequest);
         vesselData.setId(id);
-
-
-
-
 
         if (foto != null && !foto.isEmpty()) {
             vesselData.setPath(foto.getOriginalFilename());
@@ -451,44 +430,33 @@ public class VesselRestController {
             vesselData.setPath(vessel.getPath());
         }
 
+        // CORREÇÃO: Ignorar campos obrigatórios para não zerar no banco
+        BeanUtils.copyProperties(vesselData, vessel, "id", "user", "dataCreate", "status", "st_ver_vessel");
 
-        //TEMP
-        BeanUtils.copyProperties(vesselData, vessel, "id");
+        // CORREÇÃO: Salvar o objeto 'vessel' atualizado, não o DTO 'vesselData'
+        vessel = vesselRepository.save(vessel);
 
+        // vesselData.setId(id);
+        // vessel = vesselRepository.save(vessel);
 
-//        if(vesselData.getPath()==null) {
-//            vessel.setPath(path);
-//        }
+        // vessel = vesselRepository.save(vessel);
 
-
-        //TEMP
-        vessel = vesselRepository.save(vesselData);
-
-//        vesselData.setId(id);
-//        vessel = vesselRepository.save(vessel);
-
-//        vessel = vesselRepository.save(vessel);
-
-       var vesselResponse = vesselMapper.toVesselResponse(vessel);
+        var vesselResponse = vesselMapper.toVesselResponse(vessel);
         return vesselAssembler.toModel(vesselResponse);
     }
 
     @DeleteMapping("/{id}")
-//    @TWJobsPermissions.IsOwner
     @PortoUsersPermissions.IsFuncionarioCoace
-    @PortoUsersPermissions.IsAdministrador
     public ResponseEntity<?> delete(@PathVariable Long id) {
         var vessel = vesselRepository.findById(id)
                 .orElseThrow(VesselNotFoundException::new);
-
-
 
         vesselRepository.delete(vessel);
         return ResponseEntity.noContent().build();
     }
 
-//    Continuar colocando os métodos e substituindo por vessels.
-//    Depois corrigir os objetos que talvez ainda não existam
-//    Testar o cadastro de um vessel pra ver se guarda o user_id
-    
+    // Continuar colocando os métodos e substituindo por vessels.
+    // Depois corrigir os objetos que talvez ainda não existam
+    // Testar o cadastro de um vessel pra ver se guarda o user_id
+
 }

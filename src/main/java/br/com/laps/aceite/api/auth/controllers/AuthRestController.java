@@ -26,7 +26,6 @@ public class AuthRestController {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
-    @PortoUsersPermissions.IsFuncionarioCoace
     @PortoUsersPermissions.IsAdministrador
     @PostMapping("/register")
     @ResponseStatus(code = HttpStatus.CREATED)

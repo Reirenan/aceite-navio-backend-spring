@@ -15,15 +15,15 @@ public class BercoResponse {
 
     private String nome;
 
-    private Double compri_estrutural;
-    private Double compri_util;
+    private Double compriEstrutural;
+    private Double compriUtil;
     private Double dwt;
     private Double largura;
     private Double profundidade;
-    private Double calado_max;
-    private Double boca_max;
-    private Double loa_max;
+    private Double caladoMax;
+    private Double bocaMax;
+    private Double loaMax;
     private String categoria;
     private List<String> accepts;
-    
+
 }

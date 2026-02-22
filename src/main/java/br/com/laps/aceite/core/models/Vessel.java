@@ -70,13 +70,6 @@ public class Vessel {
     @Column(name = "data_create", updatable = false, nullable = false)
     private LocalDateTime dataCreate;
 
-    @Column(columnDefinition = "CHAR(50) DEFAULT 'N'", length = 50)
-    private String status;
-
-    @Column(columnDefinition = "ENUM('Y','NE','N') DEFAULT 'N'")
-    @Enumerated(EnumType.STRING)
-    private VeriStatus st_ver_vessel;
-
     @Column(length = 500)
     private String path;
 }

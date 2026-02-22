@@ -34,25 +34,7 @@ public class AcceptResponse {
 
     // Berços
     private List<Berco> bercos;
-    private List<Long> bercosSelecionados;
 
     private String codigo;
     private String path;
-
-    // Dados do navio
-    private String mmsi;
-    private String nome;
-
-    private Double loa;
-    private Double boca;
-    private Double dwt;
-    private Double pontal;
-    private Double ponteMfold;
-    private Double mfoldQuilha;
-
-    private String categoria;
-    private Integer flag;
-
-    private Double caladoEntrada;
-    private Double caladoSaida;
 }

@@ -1,6 +1,5 @@
 package br.com.laps.aceite.api.bercos.controllers;
 
-
 import br.com.laps.aceite.api.bercos.assemblers.BercosAssembler;
 import br.com.laps.aceite.api.bercos.dtos.BercoRequest;
 import br.com.laps.aceite.api.bercos.dtos.BercoResponse;
@@ -44,22 +43,19 @@ public class BercosRestController {
 
     private final SecurityService securityService;
     private final PagedResourcesAssembler<BercoResponse> pagedResourcesAssembler;
-    private final VesselRepository vesselRepository;
     private final BercoCustomRepository bercoCustomRepository;
 
-    @PortoUsersPermissions.IsFuncionarioCoace
-    @PortoUsersPermissions.IsAdministrador
     @PortoUsersPermissions.IsAgenteNavio
     @GetMapping
     public CollectionModel<EntityModel<BercoResponse>> findAll(Pageable pageable) {
-        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("id").descending());
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                Sort.by("id").descending());
 
         var bercos = bercoRepository.findAll(sortedPageable)
                 .map(bercoMapper::toBercoResponse);
         return pagedResourcesAssembler.toModel(bercos, bercoAssembler);
     }
-    @PortoUsersPermissions.IsFuncionarioCoace
-    @PortoUsersPermissions.IsAdministrador
+
     @PortoUsersPermissions.IsAgenteNavio
     @GetMapping("/sem-paginacao")
     public CollectionModel<EntityModel<BercoResponse>> findAllSemPaginacao() {
@@ -68,8 +64,7 @@ public class BercosRestController {
                 .collect(Collectors.toList());
         return bercoAssembler.toCollectionModel(lista);
     }
-    @PortoUsersPermissions.IsFuncionarioCoace
-    @PortoUsersPermissions.IsAdministrador
+
     @PortoUsersPermissions.IsAgenteNavio
     @GetMapping("/{id}")
     public EntityModel<BercoResponse> findById(@PathVariable Long id) {
@@ -78,60 +73,48 @@ public class BercosRestController {
         var bercoResponse = bercoMapper.toBercoResponse(berco);
         return bercoAssembler.toModel(bercoResponse);
     }
-    @PortoUsersPermissions.IsFuncionarioCoace
-    @PortoUsersPermissions.IsAdministrador
+
     @PortoUsersPermissions.IsAgenteNavio
     @GetMapping("/custom")
-    public List<BercoResponse> custom(@RequestParam(value = "id", required = false) Long id, @RequestParam(value = "categoria", required = false) String categoria, @RequestParam(value = "nome", required = false) String nome){
-
+    public List<BercoResponse> custom(@RequestParam(value = "id", required = false) Long id,
+            @RequestParam(value = "categoria", required = false) String categoria,
+            @RequestParam(value = "nome", required = false) String nome) {
 
         List<BercoResponse> bercos = bercoCustomRepository.bercosCustom(id, categoria, nome)
-                 .stream()
+                .stream()
                 .map(bercoMapper::toBercoResponse)
                 .toList();
 
         return bercos;
     }
 
-
     @ResponseStatus(HttpStatus.CREATED)
     @PortoUsersPermissions.IsFuncionarioCoace
-    @PortoUsersPermissions.IsAdministrador
     @PostMapping
     public EntityModel<BercoResponse> create(@Valid @RequestBody BercoRequest bercoRequest) {
         var berco = bercoMapper.toBerco(bercoRequest);
 
         berco = bercoRepository.save(berco);
 
-        List<Vessel> navios = vesselRepository.findAll();
-        for(Vessel i : navios){
-            i.setSt_ver_vessel(VeriStatus.valueOf("N"));
-        }
-
         var bercoResponse = bercoMapper.toBercoResponse(berco);
         return bercoAssembler.toModel(bercoResponse);
     }
 
-
-
     @PutMapping("/{id}")
     @PortoUsersPermissions.IsFuncionarioCoace
-    @PortoUsersPermissions.IsAdministrador
     public EntityModel<BercoResponse> update(
             @RequestBody @Valid BercoRequest bercoRequest,
-            @PathVariable Long id
-    ) {
+            @PathVariable Long id) {
         var berco = bercoRepository.findById(id)
                 .orElseThrow(BercoNotFoundException::new);
+
         var bercoData = bercoMapper.toBerco(bercoRequest);
-        BeanUtils.copyProperties(bercoData, berco, "id", "company", "candidates");
+
+        // Corrigido: Ignorar campos internos se existirem e garantir salvamento correto
+        // da entidade gerenciada
+        BeanUtils.copyProperties(bercoData, berco, "id");
+
         berco = bercoRepository.save(berco);
-
-        List<Vessel> navios = vesselRepository.findAll();
-        for(Vessel i : navios){
-            i.setSt_ver_vessel(VeriStatus.valueOf("N"));
-        }
-
 
         var bercoResponse = bercoMapper.toBercoResponse(berco);
         return bercoAssembler.toModel(bercoResponse);
@@ -139,20 +122,12 @@ public class BercosRestController {
 
     @DeleteMapping("/{id}")
     @PortoUsersPermissions.IsFuncionarioCoace
-    @PortoUsersPermissions.IsAdministrador
     public ResponseEntity<?> delete(@PathVariable Long id) {
         var berco = bercoRepository.findById(id)
                 .orElseThrow(BercoNotFoundException::new);
         bercoRepository.delete(berco);
 
-        List<Vessel> navios = vesselRepository.findAll();
-        for(Vessel i : navios){
-            i.setSt_ver_vessel(VeriStatus.valueOf("N"));
-        }
-
-
-
         return ResponseEntity.noContent().build();
     }
-    
+
 }

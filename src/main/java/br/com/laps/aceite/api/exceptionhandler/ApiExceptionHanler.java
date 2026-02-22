@@ -1,6 +1,5 @@
 package br.com.laps.aceite.api.exceptionhandler;
 
-
 import br.com.laps.aceite.core.exceptions.NegocioException;
 import lombok.AllArgsConstructor;
 import org.springframework.context.MessageSource;
@@ -30,8 +29,9 @@ public class ApiExceptionHanler extends ResponseEntityExceptionHandler {
         problemDetail.setTitle("Um ou mais campos estão inválidos");
         problemDetail.setType(URI.create("https://..."));
 
-        var fields = ex.getBindingResult().getAllErrors().stream().collect(Collectors.toMap(error -> ((FieldError) error).getField(),
-                error -> messageSource.getMessage(error, LocaleContextHolder.getLocale())));
+        var fields = ex.getBindingResult().getAllErrors().stream()
+                .collect(Collectors.toMap(error -> ((FieldError) error).getField(),
+                        error -> messageSource.getMessage(error, LocaleContextHolder.getLocale())));
 
         problemDetail.setProperty("fields", fields);
 
@@ -40,7 +40,7 @@ public class ApiExceptionHanler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(NegocioException.class)
-    public ProblemDetail handleNegocio(NegocioException e){
+    public ProblemDetail handleNegocio(NegocioException e) {
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         problemDetail.setTitle(e.getMessage());
         problemDetail.setType(URI.create("https://..."));
@@ -49,7 +49,7 @@ public class ApiExceptionHanler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ProblemDetail handleDataIntegrityViolation(DataIntegrityViolationException e){
+    public ProblemDetail handleDataIntegrityViolation(DataIntegrityViolationException e) {
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.CONFLICT);
         problemDetail.setTitle("Recurso está em uso");
         problemDetail.setType(URI.create("https://..."));

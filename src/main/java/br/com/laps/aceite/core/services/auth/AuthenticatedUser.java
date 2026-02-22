@@ -1,4 +1,5 @@
 package br.com.laps.aceite.core.services.auth;
+
 import br.com.laps.aceite.core.models.User;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ public class AuthenticatedUser implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return AuthorityUtils.createAuthorityList(user.getRole().name());
+        return AuthorityUtils.createAuthorityList("ROLE_" + user.getRole().name());
     }
 
     @Override

@@ -1,6 +1,5 @@
 package br.com.laps.aceite.api.accepts.controllers;
 
-
 import br.com.laps.aceite.api.accepts.assemblers.AcceptAssembler;
 import br.com.laps.aceite.api.accepts.dtos.AcceptResponse;
 import br.com.laps.aceite.api.accepts.mappers.AcceptMapper;
@@ -29,6 +28,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -45,8 +45,8 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-
 
 @RestController
 @RequiredArgsConstructor
@@ -66,23 +66,20 @@ public class AcceptRestController {
 
     private final FileManagerController fileManagerController;
 
-
-    //<ALTERAÇÕES 05/01/26[->>] >
+    // <ALTERAÇÕES 05/01/26[->>] >
     private final UserRepository userRepository;
-    //<ALTERAÇÕES 05/01/26[<<-] >
+    // <ALTERAÇÕES 05/01/26[<<-] >
 
-    //<ALTERAÇÕES 22/11/25[->>] >
+    // <ALTERAÇÕES 22/11/25[->>] >
 
     @Autowired
     private EmailService emailService;
 
-    //</ALTERAÇÕES 22/11/25[->>] >
+    // </ALTERAÇÕES 22/11/25[->>] >
 
     @Autowired
     private ObjectMapper mapper;
     //
-
-
 
     @GetMapping("statistics/count")
     public Long howMany() {
@@ -97,69 +94,34 @@ public class AcceptRestController {
         return acceptAssembler.toCollectionModel(lista);
     }
 
-    //"@PageableDefault(value = 7)" tamanho local para o tamanho da paginação. Deve ser igual ou menor ao valor encontrado no "application.properties"
+    // "@PageableDefault(value = 7)" tamanho local para o tamanho da paginação. Deve
+    // ser igual ou menor ao valor encontrado no "application.properties"
+    @PortoUsersPermissions.IsAgenteNavio
     @GetMapping
     public CollectionModel<EntityModel<AcceptResponse>> findAll(@PageableDefault(value = 15) Pageable pageable) {
 
         User user = securityService.getCurrentUser();
         Long userId = user.getId();
 
+        Page<Accept> accepts;
+        if (user.getRole() == Role.AGENTE_NAVIO) {
+            accepts = acceptRepository.findAllByUserId(userId, pageable);
+        } else {
+            accepts = acceptRepository.findAll(pageable);
+        }
 
-//        if (user.getRole().equals(Role.COMPANY)) {
-//            throw new NegocioException("É company");
-        var accepts = acceptRepository.findAll(pageable)
-                // findAll(pageable)
-                .map(acceptMapper::toAcceptResponse) ;
-        return pagedResourcesAssembler.toModel(accepts, acceptAssembler);
-//        } else if (user.getRole().equals(Role.CANDIDATE)) {
-////            throw new NegocioException("É candidate");
-//            var accepts = acceptRepository.findAllByUserId(pageable,userId)
-//                    .map(acceptMapper::toAcceptResponse);
-//            return pagedResourcesAssembler.toModel(accepts, acceptAssembler);
-//
-//        }
-
-
-//        Page<AcceptResponse>
-//                accepts = acceptRepository.findAllByUserId(pageable,userId)
-//                .map(acceptMapper::toAcceptResponse);
-//
-//
-//        AJEITAR
-//        return null;
-//        return pagedResourcesAssembler.toModel(accepts, acceptAssembler);
+        var acceptsResponse = accepts.map(acceptMapper::toAcceptResponse);
+        return pagedResourcesAssembler.toModel(acceptsResponse, acceptAssembler);
     }
 
-
-
-
-
-    @GetMapping("/custom")
-    public List<AcceptResponse> findTest(@RequestParam(value = "id", required = false) Long id,
-                                         @RequestParam(value = "imo", required = false) String imo,
-                                         @RequestParam(value = "status", required = false) String status,
-                                         @RequestParam(value = "nome", required = false) String nome,
-                                         @RequestParam(value = "categoria", required = false) String categoria,
-                                         @RequestParam(value = "dataInicio", required = false)
-                                         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
-                                         @RequestParam(value = "dataFim", required = false)
-                                         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim) {
-        List<AcceptResponse> accepts = acceptCustomRepository.acceptsCustom(id, imo, status, nome, categoria, dataInicio,dataFim)
-                .stream()
-                .map(acceptMapper::toAcceptResponse)
-                .collect(Collectors.toList());
-        return accepts;
-    }
-
-
-
+    @PortoUsersPermissions.IsAgenteNavio
     @GetMapping("/{id}")
     public EntityModel<AcceptResponse> findById(@PathVariable Long id) {
         User user = securityService.getCurrentUser();
         Long userId = user.getId();
         Accept accept;
 
-        if(user.getRole()==Role.FUNCIONARIO_COACE) {
+        if (user.getRole() != Role.AGENTE_NAVIO) {
             accept = acceptRepository.findById(id)
                     .orElseThrow(AcceptNotFoundException::new);
         } else {
@@ -167,130 +129,71 @@ public class AcceptRestController {
                     .orElseThrow(AcceptNotFoundException::new);
         }
 
-
         var acceptResponse = acceptMapper.toAcceptResponse(accept);
         return acceptAssembler.toModel(acceptResponse);
     }
 
-
-
+    @PortoUsersPermissions.IsAgenteNavio
     @PostMapping
     @ResponseStatus(code = HttpStatus.CREATED)
-    public EntityModel<AcceptResponse>
-    create(@Valid @RequestParam(name="acceptRequestForm", required=true) String acceptRequestForm,  @RequestParam(name="foto", required=false) MultipartFile foto) throws JsonProcessingException {return cadastroAcceptService.salvar(acceptRequestForm, foto,"pauloacb2020@gmail.com");}
+    public EntityModel<AcceptResponse> create(
+            @Valid @RequestParam(name = "acceptRequestForm", required = true) String acceptRequestForm,
+            @RequestParam(name = "foto", required = false) MultipartFile foto) throws JsonProcessingException {
+        return cadastroAcceptService.salvar(acceptRequestForm, foto, null);
+    }
+
+    @PortoUsersPermissions.IsFuncionarioCoace
+    @PatchMapping("/{id}/approve")
+    public EntityModel<AcceptResponse> approve(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String restricoes = body.get("restricoes");
+        Accept accept = acceptRepository.findById(id).orElseThrow(AcceptNotFoundException::new);
+        accept.setStatus(AceiteStatus.ACEITO);
+        accept.setRestricoes(restricoes);
+        accept.setDataHoraAccept(java.time.LocalDateTime.now());
+        // For now, reuse update logic or just save. The CadastroAcceptService should
+        // probably handle notifications.
+        accept = acceptRepository.save(accept);
+        return acceptAssembler.toModel(acceptMapper.toAcceptResponse(accept));
+    }
+
+    @PortoUsersPermissions.IsFuncionarioCoace
+    @PatchMapping("/{id}/reject")
+    public EntityModel<AcceptResponse> reject(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String restricoes = body.get("restricoes");
+        Accept accept = acceptRepository.findById(id).orElseThrow(AcceptNotFoundException::new);
+        accept.setStatus(AceiteStatus.NEGADO);
+        accept.setRestricoes(restricoes);
+        accept.setDataHoraAccept(java.time.LocalDateTime.now());
+        accept = acceptRepository.save(accept);
+        return acceptAssembler.toModel(acceptMapper.toAcceptResponse(accept));
+    }
 
     @PutMapping("/{id}")
     @PortoUsersPermissions.IsFuncionarioCoace
     @PortoUsersPermissions.IsAdministrador
+    @PortoUsersPermissions.IsAgenteNavio
     public EntityModel<AcceptResponse> update(
-
-
-            @Valid @RequestParam(name="acceptRequestForm", required=true) String acceptRequestForm, @PathVariable Long id,  @RequestParam(name="foto", required=false) MultipartFile foto
-    ) throws JsonProcessingException {
-
-        if(foto != null) {
-            String filename = foto.getOriginalFilename();
-            String extension = null;
-            int dotIndex = filename.lastIndexOf(".");
-            if (dotIndex >= 0) {
-                extension = filename.substring(dotIndex + 1);
-            }
-
-            String[] extensions = {"txt", "zip", "pdf"};
-
-            Boolean verifica = false;
-            if(extension!=null) {
-                for(String i : extensions){
-                    if(i.equals(extension) ) {
-                        verifica =true;
-                        break;
-                    }
-                }
-
-                if(!verifica){
-                    throw new NegocioException(extension);
-                }
-
-            }
-        }
+            @Valid @RequestParam(name = "acceptRequestForm", required = true) String acceptRequestForm,
+            @PathVariable Long id, @RequestParam(name = "foto", required = false) MultipartFile foto)
+            throws JsonProcessingException {
 
         AcceptRequest acceptRequest = mapper.readValue(acceptRequestForm, AcceptRequest.class);
-
-        User user = securityService.getCurrentUser();
-        Long userId = user.getId();
-
-        Accept accept = new Accept();
-
-
-        accept = acceptRepository.findById(id)
-                .orElseThrow(AcceptNotFoundException::new);
-
+        Accept accept = acceptRepository.findById(id).orElseThrow(AcceptNotFoundException::new);
         var acceptData = acceptMapper.toAccept(acceptRequest);
 
-
-
-
-        var path = accept.getPath();
-
-        acceptData.setPath(path);
-
-        if(foto!=null) {
-            acceptData.setPath(foto.getOriginalFilename());
+        if (foto != null) {
+            accept.setPath(foto.getOriginalFilename());
             fileManagerController.uploadFile(foto);
         }
 
-
-        BeanUtils.copyProperties(acceptData, accept, "id", "dataAccept", "data_create", "time_accept", "time_create","vessel", "user", "bercos");
+        BeanUtils.copyProperties(acceptData, accept, "id", "dataHoraAccept", "data_create", "time_accept",
+                "time_create", "vessel", "user", "bercos", "codigo");
 
         accept = acceptRepository.save(accept);
-
         var acceptResponse = acceptMapper.toAcceptResponse(accept);
-
-        String destinatario_admin = String.valueOf(userRepository.findBySendEmail(Boolean.TRUE).get().getEmail());
-
-        String nome_bercos_autori = "";
-        for(Berco berco : accept.getBercos()) {
-            nome_bercos_autori = nome_bercos_autori + berco.getNome() + ", ";
-        }
-
-
-        String msg = "";
-
-        if (accept.getId() != null) {
-            msg = msg + "ID DO ACEITE: " + accept.getId() + "\n\n";
-        }
-
-        if (accept.getVessel() != null && accept.getVessel().getImo() != null && !accept.getVessel().getImo().equals("")) {
-            msg = msg + "IMO DO NAVIO: " + accept.getVessel().getImo() + "\n\n";
-        }
-
-        if ("Y".equals(accept.getStatus()) && nome_bercos_autori != null && !nome_bercos_autori.equals("")) {
-            msg = msg + "BERÇOS AUTORIZADOS: " + nome_bercos_autori + "\n\n";
-        }
-
-        if (accept.getStatus() != null) {
-            msg = msg + "STATUS ATUAL DO ACEITE: " + traduzStatus(accept.getStatus()) + "\n\n";
-        }
-
-        if (accept.getRestricoes() != null && !accept.getRestricoes().equals("")) {
-            msg = msg + "COMENTÁRIO RESPOSTA (PORTO): " + accept.getRestricoes() + "\n\n";
-        }
-
-        if (accept.getDataHoraAccept() != null) {
-            msg = msg + "DATA E HORA DESTA RESPOSTA: "
-                    + accept.getDataHoraAccept() + "\n\n";
-        }
-
-
-
-        emailService.enviarEmailTexto(accept.getUser().getEmail(), "Aceite do Navio " + accept.getVessel().getNome() +"  - RESPOSTA DA SOLICITAÇÃO DO USUÁRIO ", msg);
-        // ENVIAR CÓPIA PARA A COACE ->
-        emailService.enviarEmailTexto(destinatario_admin, "Aceite do Navio " + accept.getVessel().getNome() +"  - RESPOSTA DA SOLICITAÇÃO ", msg);
-
-
         return acceptAssembler.toModel(acceptResponse);
-
     }
+
     private String traduzStatus(AceiteStatus status) {
 
         if (status == null) {
@@ -314,8 +217,8 @@ public class AcceptRestController {
                 return "Status desconhecido";
         }
     }
-    @DeleteMapping("/{id}")
 
+    @DeleteMapping("/{id}")
     @PortoUsersPermissions.IsFuncionarioCoace
     @PortoUsersPermissions.IsAdministrador
     public ResponseEntity<?> delete(@PathVariable Long id) {
@@ -327,5 +230,4 @@ public class AcceptRestController {
         acceptRepository.delete(accept);
         return ResponseEntity.noContent().build();
     }
-
 }
