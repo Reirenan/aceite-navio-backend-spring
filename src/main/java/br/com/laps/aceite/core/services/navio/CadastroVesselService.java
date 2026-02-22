@@ -1,8 +1,9 @@
-package br.com.treinaweb.twjobs.core.services;
+package br.com.laps.aceite.core.services.navio;
 
-import br.com.treinaweb.twjobs.core.exceptions.NegocioException;
-import br.com.treinaweb.twjobs.core.models.Vessel;
-import br.com.treinaweb.twjobs.core.repositories.VesselRepository;
+import br.com.laps.aceite.core.exceptions.NegocioException;
+import br.com.laps.aceite.core.models.Vessel;
+import br.com.laps.aceite.core.repositories.VesselRepository;
+
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;

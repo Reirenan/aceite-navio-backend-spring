@@ -1,4 +1,4 @@
-package br.com.treinaweb.twjobs.api.auth.dtos;
+package br.com.laps.aceite.api.auth.dtos;
 
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;

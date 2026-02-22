@@ -1,8 +1,8 @@
-package br.com.laps.aceite.api.mappers;
+package br.com.laps.aceite.api.users.mappers;
 
-import br.com.laps.aceite.api.dtos.UserRequest;
-import br.com.laps.aceite.api.dtos.UserResponse;
-import br.com.treinaweb.twjobs.core.models.User;
+import br.com.laps.aceite.api.users.dtos.UserRequest;
+import br.com.laps.aceite.api.users.dtos.UserResponse;
+import br.com.laps.aceite.core.models.User;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;

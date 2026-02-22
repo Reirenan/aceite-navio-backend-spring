@@ -1,10 +1,10 @@
-package br.com.laps.aceite.api.navios.controllers;
+package br.com.laps.aceite.api.vessels.controllers;
 
-import br.com.treinaweb.twjobs.api.vessels.assemblers.VesselAssembler;
-import br.com.treinaweb.twjobs.api.vessels.dtos.VesselResponse;
-import br.com.treinaweb.twjobs.api.vessels.mappers.VesselMapper;
-import br.com.treinaweb.twjobs.core.exceptions.VesselNotFoundException;
-import br.com.treinaweb.twjobs.core.repositories.VesselRepository;
+import br.com.laps.aceite.api.vessels.assembler.VesselAssembler;
+import br.com.laps.aceite.api.vessels.dtos.VesselResponse;
+import br.com.laps.aceite.api.vessels.mappers.VesselMapper;
+import br.com.laps.aceite.core.exceptions.VesselNotFoundException;
+import br.com.laps.aceite.core.repositories.VesselRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,7 +22,7 @@ public class VesselDataRestController {
     private final VesselAssembler vesselAssembler;
 
     @GetMapping("{imo}")
-    EntityModel<VesselResponse> ReturnVDataByImo(@PathVariable Long imo){
+    EntityModel<VesselResponse> ReturnVDataByImo(@PathVariable String imo){
 
         var vessel = vesselRepository
                 .findTopByImoOrderByIdDesc(imo)

@@ -1,13 +1,11 @@
-package br.com.treinaweb.twjobs.core.models;
+package br.com.laps.aceite.core.models;
 
-import br.com.treinaweb.twjobs.core.enums.AceiteStatus;
-import br.com.treinaweb.twjobs.core.enums.CategoriaVessel;
-import br.com.treinaweb.twjobs.core.enums.VeriStatus;
+import br.com.laps.aceite.core.enums.AceiteStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.jpa.repository.Modifying;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,11 +14,9 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(onlyExplicitlyIncluded=true)
+@ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Accept {
-
-    //   TESTAR
 
     @Id
     @EqualsAndHashCode.Include
@@ -28,101 +24,86 @@ public class Accept {
     private Long id;
 
     @ToString.Include
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-
-    //    NOT NULL
     @ToString.Include
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "vessel_id", nullable = false)
     private Vessel vessel;
 
-    //    NOT NULL
-    @Column( nullable = false, length = 50)
-    private Long imo;
+    // IMO (7 dígitos)
+    @Column(nullable = false, length = 7, unique = true)
+    private String imo;
 
-    //    < NOT NULL
-    @Column(name="data_accept", nullable = false, length = 100)
-    private String dataAccept;
-    @Column(nullable = false, length = 100)
-    private String data_create;
-    @Column(nullable = false, length = 100)
-    private String data_update;// >
+    // Data do aceite
+    @Column(name = "data_accept", nullable = false)
+    private LocalDateTime dataHoraAccept;
 
-    @Column(nullable = false, length = 100)
-    private String time_accept;
-    @Column(nullable = false, length = 100)
-    private String time_create;
-    @Column(nullable = false, length = 100)
-    private String time_update;
-
-
+    @Column(length = 2000)
     private String obs;
+
+    @Column(length = 2000)
     private String restricoes;
 
-    @Column( columnDefinition = "varchar(9) DEFAULT 0", nullable = true, length = 9)
+    @Column(nullable = false, length = 9, columnDefinition = "varchar(9) default '0'")
     private String codigo;
 
-//    @Column(nullable = false, length = 20)
-//    @Enumerated(EnumType.STRING)
-//    private AceiteStatus status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private AceiteStatus status;
 
-    //    NOT NULL
-    //    Y -> 1; NE -> 2; N-> 3
-    @Column( columnDefinition = "CHAR(50) DEFAULT 'N'", nullable = false, length = 50)
-//    @Enumerated(EnumType.STRING)
-    private String status;
-
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name="accept_berco",
-            joinColumns = @JoinColumn(name="accept_id"),
-            inverseJoinColumns = @JoinColumn(name="berco_id")
+            name = "accept_berco",
+            joinColumns = @JoinColumn(name = "accept_id"),
+            inverseJoinColumns = @JoinColumn(name = "berco_id")
     )
     @JsonIgnoreProperties("accept")
-    private List<Berco> bercos;
-//  Assim, em name eu defino o nome da tabela intermediária.
-//  Em joiColumns em digo o nome da tabela mais forte.]
-//  E em inverseJoinColumns eu defino o nome da outra tabela que irá compor accept_berco.
+    private List<Berco> bercos = new ArrayList<>();
 
-//    Dados navio
+    // Lista de IDs separados (caso realmente precise manter)
+    @ElementCollection
+    @CollectionTable(
+            name = "accept_bercos_selecionados",
+            joinColumns = @JoinColumn(name = "accept_id")
+    )
+    @Column(name = "berco_id", nullable = false)
+    private List<Long> bercosSelecionados = new ArrayList<>();
+
+    // Dados do navio
+    @Column(length = 9)
     private String mmsi;
+
+    @Column(length = 150)
     private String nome;
 
-    //    NOT NULL
-    @Column( nullable = false, length = 100)
-    private Float loa;
-    private Float boca;
-    //    NOT NULL
-    @Column( nullable = false, length = 100)
-    private Float dwt;
-    private Float pontal;
-    private Float ponte_mfold;
-    private Float mfold_quilha;
+    @Column(nullable = false)
+    private Double loa;
 
-    //    NOT NULL
-    @Column( nullable = false, length = 100)
+    private Double boca;
+
+    @Column(nullable = false)
+    private Double dwt;
+
+    private Double pontal;
+
+    private Double ponteMfold;
+
+    private Double mfoldQuilha;
+
+    @Column(nullable = false, length = 100)
     private String categoria;
 
     private Integer flag;
 
-    //    NOT NULL
-    @Column(nullable = false, length = 10)
-    private Float calado_entrada;
-
-    //    NOT NULL
-    @Column(nullable = false, length = 10)
-    private Float calado_saida;
-
-    @Column(length=500)
-    private String path;
+    @Column(nullable = false)
+    private Double caladoEntrada;
 
     @Column(nullable = false)
-    private List<Long> bercosSelecionados = new ArrayList<>();
+    private Double caladoSaida;
 
-//    @Column(nullable = false, length = 20)
-//    @Enumerated(EnumType.STRING)
-//    private AceiteStatus status;
-
-
+    @Column(length = 500)
+    private String path;
 }

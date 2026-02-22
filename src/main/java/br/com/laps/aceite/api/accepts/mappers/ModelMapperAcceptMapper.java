@@ -1,15 +1,13 @@
-package br.com.treinaweb.twjobs.api.accepts.mappers;
+package br.com.laps.aceite.api.accepts.mappers;
 
 
-import br.com.treinaweb.twjobs.api.accepts.dtos.AcceptRequest;
-import br.com.treinaweb.twjobs.api.accepts.dtos.AcceptResponse;
-import br.com.treinaweb.twjobs.core.models.Accept;
-import br.com.treinaweb.twjobs.core.models.Aceite;
+import br.com.laps.aceite.api.accepts.dtos.AcceptRequest;
+import br.com.laps.aceite.api.accepts.dtos.AcceptResponse;
+import br.com.laps.aceite.core.models.Accept;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
-
 
 
 @Component

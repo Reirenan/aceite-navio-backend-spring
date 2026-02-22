@@ -1,7 +1,7 @@
 package br.com.laps.aceite.api.users.assemblers;//package br.com.treinaweb.twjobs.api.ships.assemblers;
 
-import br.com.laps.aceite.api.controllers.UsersCRUDRestController;
-import br.com.laps.aceite.api.dtos.UserResponse;
+import br.com.laps.aceite.api.users.controllers.UsersCRUDRestController;
+import br.com.laps.aceite.api.users.dtos.UserResponse;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;

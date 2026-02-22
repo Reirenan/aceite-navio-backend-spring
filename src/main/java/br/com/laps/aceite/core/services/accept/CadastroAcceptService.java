@@ -1,49 +1,32 @@
-package br.com.treinaweb.twjobs.core.service;
+package br.com.laps.aceite.core.services.accept;
 
 
-import br.com.treinaweb.twjobs.api.accepts.assemblers.AcceptAssembler;
-import br.com.treinaweb.twjobs.api.accepts.dtos.AcceptRequest;
-import br.com.treinaweb.twjobs.api.accepts.dtos.AcceptResponse;
-import br.com.treinaweb.twjobs.api.accepts.mappers.AcceptMapper;
-import br.com.treinaweb.twjobs.api.file.FileManagerController;
-import br.com.treinaweb.twjobs.api.vessels.dtos.VesselRequest;
-import br.com.treinaweb.twjobs.core.enums.EmailActivation;
-import br.com.treinaweb.twjobs.core.enums.VeriStatus;
-import br.com.treinaweb.twjobs.core.exceptions.NegocioException;
-import br.com.treinaweb.twjobs.core.exceptions.VesselNotFoundException;
-import br.com.treinaweb.twjobs.core.models.*;
-import br.com.treinaweb.twjobs.core.repositories.*;
-import br.com.treinaweb.twjobs.core.services.auth.SecurityService;
-//import jakarta.mail.Message;
+import br.com.laps.aceite.api.accepts.assemblers.AcceptAssembler;
+import br.com.laps.aceite.api.accepts.dtos.AcceptRequest;
+import br.com.laps.aceite.api.accepts.dtos.AcceptResponse;
+import br.com.laps.aceite.api.accepts.mappers.AcceptMapper;
+import br.com.laps.aceite.api.file.FileManagerController;
+import br.com.laps.aceite.core.enums.AceiteStatus;
+import br.com.laps.aceite.core.exceptions.NegocioException;
+import br.com.laps.aceite.core.exceptions.VesselNotFoundException;
+import br.com.laps.aceite.core.models.*;
+import br.com.laps.aceite.core.repositories.*;
+import br.com.laps.aceite.core.services.auth.SecurityService;
+import br.com.laps.aceite.core.services.email.EmailService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
-//import org.springframework.mail.SimpleMailMessage;
-//import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
-
-
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 
 @AllArgsConstructor
@@ -58,11 +41,10 @@ public class CadastroAcceptService {
 
     private final VesselRepository vesselRepository;
     private final BercoRepository bercoRepository;
-    private final BlackListRepository blackListRepository;
+    private final VettingRepository vettingRepository;
 
     private final FileManagerController fileManagerController;
 
-    private final EmailSendRepository emailSendRepository;
 
     private final UserRepository userRepository;
 
@@ -73,568 +55,205 @@ public class CadastroAcceptService {
     private EmailService emailService;
 
 
-
-
-
-    // @SuppressWarnings("null")
     @Transactional
-    public EntityModel<AcceptResponse> salvar(String acceptRequestForm, MultipartFile foto, String destinatario) throws JsonProcessingException {
-        String msg;
+    public EntityModel<AcceptResponse> salvar(String acceptRequestForm, MultipartFile foto, String destinatario)
+            throws JsonProcessingException {
 
-        //verifica extensao --> Desabilitado momentâneamente
-        String filename =  System.currentTimeMillis() + "_" + foto.getOriginalFilename();
+        String msg = null;
 
-        // String filename = "Teste";
+        // 1) Parse do request
+        AcceptRequest acceptRequest = mapper.readValue(acceptRequestForm, AcceptRequest.class);
 
+        // 2) Usuário logado
+        User user = securityService.getCurrentUser();
 
-        String extension = null;
-        int dotIndex = filename.lastIndexOf(".");
-        if (dotIndex >= 0) {
-            extension = filename.substring(dotIndex + 1);
-        }
+        // 3) Mapeia DTO -> Entity
+        Accept accept = acceptMapper.toAccept(acceptRequest);
+        accept.setUser(user);
 
-        System.out.println("*");
-        System.out.println("FILENAME");
-        System.out.println(filename);
+        // 4) Upload (se tiver foto) + valida extensão
+        if (foto != null && !foto.isEmpty()) {
+            String original = foto.getOriginalFilename();
+            String ext = null;
 
-        String[] extensions = {"txt", "zip", "pdf"};
-
-        Boolean verifica = false;
-        if(extension!=null) {
-            for(String i : extensions){
-                if(i.equals(extension) ) {
-                    verifica =true;
-                    break;
-                }
+            if (original != null && original.contains(".")) {
+                ext = original.substring(original.lastIndexOf('.') + 1).toLowerCase();
             }
 
-            if(!verifica){
-                throw new NegocioException(extension);
+            List<String> allowed = List.of("txt", "zip", "pdf");
+            if (ext == null || !allowed.contains(ext)) {
+                throw new NegocioException("Extensão inválida: " + ext);
             }
 
+            accept.setPath(original);
+            fileManagerController.uploadFile(foto);
         }
 
+        // 5) Destinatário dinâmico
         User destinatarioUser = userRepository.findBySendEmail(Boolean.TRUE)
                 .orElseGet(() -> {
-                    // fallback: destinatário padrão (ex: e-mail institucional)
                     User fallback = new User();
                     fallback.setEmail("suporte@sistema.com");
                     return fallback;
                 });
 
-
-        // Define o e-mail do destinatário dinamicamente
         destinatario = destinatarioUser.getEmail();
 
-        System.out.println("*");
-        System.out.println("DESTINATÁRIO");
-        System.out.println(destinatario);
-
-        System.out.println("*");
-        System.out.println("DESTINATÁRIO");
-        System.out.println(destinatario);
-
-        AcceptRequest acceptRequest = mapper.readValue(acceptRequestForm, AcceptRequest.class);
-
-
-        User user = securityService.getCurrentUser();
-        // Long userId = user.getId();
-
-        var accept = acceptMapper.toAccept(acceptRequest);
-        accept.setUser(user);
-
-        if(foto!=null) {
-            accept.setPath(foto.getOriginalFilename());
-            fileManagerController.uploadFile(foto);
-        }
-
-//      """
-//        Procura navio por imo e userId.
-//                   """
-//        Vessel vessel = vesselRepository.findByImoAndUserId(accept.getImo(), userId)
-//                .orElseThrow(VesselNotFoundException::new);
-
+        // 6) Vessel por IMO
         Vessel vessel = vesselRepository.findByImo(accept.getImo())
                 .orElseThrow(VesselNotFoundException::new);
 
-
-
-
-//        if(vessel.getCategoria()==null&&accept.getCategoria()!=null) {
-//            vessel.setCategoria(accept.getCategoria());
-//            vesselRepository.save(vessel);
-//        }
-
-//      """Setando as datas de alteração"""
         accept.setVessel(vessel);
-        accept.setDataAccept(String.valueOf(LocalDate.now()+" "+ LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))));
-        accept.setData_create(String.valueOf(LocalDate.now()+" "+ LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))));
-        accept.setData_update(String.valueOf(LocalDate.now()));
 
-        accept.setTime_accept(String.valueOf(LocalDate.now()+" "+ LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))));
-        accept.setTime_create(String.valueOf(LocalDate.now()+" "+ LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))));
-        accept.setTime_update(String.valueOf(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))));
+        // 7) Data/hora (novo campo)
+        accept.setDataHoraAccept(java.time.LocalDateTime.now());
 
-//      """ Inutilizado por enquanto
-//        Accept lastAccepted = acceptRepository.findTop1ByImoOrderByIdDesc(vessel.getImo());
+        // 8) Checa blacklist
+        boolean blackListed = vettingRepository.existsByImo(accept.getImo());
 
-
+        // 9) Berços compatíveis
         List<Berco> bercos = bercoRepository.findAll();
-
         List<Berco> bercosCompativeis = new ArrayList<>();
 
-// <PARTE-NOVA>
-        List<Berco> bercosRestricao = new ArrayList<>();
-
-        boolean hasRestrics = false;
-// </PARTE-NOVA>
-
-
-//        CHECA SE TÁ NA BLACKLIST
-        boolean blackListed = blackListRepository.existsByImo(accept.getImo());
-
-//       ~~~    PLANO DE AMARRACAO PORTO(BASEADO NAS REUNIOES)
         for (Berco berco : bercos) {
-//            if(Objects.equals(vessel.getCategoria(), berco.getCategoria())) {
-//                if ((vessel.getLoa()<=berco.getLoa_max())&&(acceptRequest.getCalado_entrada()<=berco.getCalado_max())&&(acceptRequest.getCalado_saida()<=berco.getCalado_max())&&(vessel.getDwt()<=berco.getDwt())
-////                TESTAR SE TÁ FUNCIONANDO ESSA CHECAGEM DA BLACKLIST
-//                &&(!blackListed)
-//                ) {
-//                    bercosCompativeis.add(berco);
-//                }
-//            }
 
-            if(Objects.equals(accept.getCategoria(), berco.getCategoria())) {
-                if ((accept.getLoa()<=berco.getLoa_max())&&(accept.getCalado_entrada()<=berco.getCalado_max())&&(accept.getCalado_saida()<=berco.getCalado_max())&&(accept.getDwt()<=berco.getDwt())
-//                TESTAR SE TÁ FUNCIONANDO ESSA CHECAGEM DA BLACKLIST
-                        &&(!blackListed)
-                ) {
-                    bercosCompativeis.add(berco);
-                }
-            }
+            if (blackListed) continue;
 
-// <PARTE-NOVA>
-            // ADICIONA BERCOS DE RESTRICAO AOS BERCOS COM RESTRICAO (*)
+            if (accept.getCategoria() == null || berco.getCategoria() == null) continue;
+            if (!Objects.equals(accept.getCategoria(), berco.getCategoria())) continue;
 
-            // Desabilita --> era do código original antes de "alteracao-email"
-            // if(!acceptRequest.getBercosSelecionados().isEmpty()) {
-// <PARTE-NOVA-2>
-            if(acceptRequest.getBercosSelecionados() != null) {
-// </PARTE-NOVA-2>
+            if (accept.getLoa() == null || berco.getLoaMax() == null) continue;
+            if (accept.getDwt() == null || berco.getDwt() == null) continue;
+            if (accept.getCaladoEntrada() == null || berco.getCaladoMax() == null) continue;
+            if (accept.getCaladoSaida() == null || berco.getCaladoMax() == null) continue;
 
-                // SE acceptRequest.getBercosSelecionados() NÃO ESTÁ VAZIO
-                for(Long nome : acceptRequest.getBercosSelecionados()) {
-                    if(berco.getNome()==nome) {
-                        bercosRestricao.add(berco);
-                    }
-                }
-                hasRestrics = true;
-            }
-// </PARTE-NOVA>
+            boolean ok =
+                    accept.getLoa() <= berco.getLoaMax()
+                            && accept.getDwt() <= berco.getDwt()
+                            && accept.getCaladoEntrada() <= berco.getCaladoMax()
+                            && accept.getCaladoSaida() <= berco.getCaladoMax();
 
+            if (ok) bercosCompativeis.add(berco);
         }
 
-// <PARTE-NOVA>
-        Accept lastAccept = acceptRepository.findFirstByOrderByDataAcceptDesc();
+        // 10) Detecta restrição (usuário mandou berços específicos)
+        List<Long> solicitadosIds = Optional.ofNullable(acceptRequest.getBercosSelecionados())
+                .orElse(Collections.emptyList());
 
-        var lastAcceptId = lastAccept.getId();
-        var  currentAcceptId = lastAcceptId +1;
+        boolean hasRestrics = !solicitadosIds.isEmpty();
 
+        // Busca berços solicitados por ID (CORRETO)
+        List<Berco> bercosRestricao = hasRestrics
+                ? bercoRepository.findAllById(solicitadosIds)
+                : Collections.emptyList();
 
-
-        // FAZ PRIMEIRO AS RESTRIÇÕES
-        if(hasRestrics) {
-
-
-            String nome_bercos_comp = "";
-            for(Berco berco : bercosCompativeis) {
-                // GUARDA O NOME DOS BERCOS
-                nome_bercos_comp = nome_bercos_comp + berco.getNome() + ", ";
-            }
-
-            String nome_bercos_restric = "";
-            for(Berco berco : bercosRestricao) {
-                // GUARDA O NOME DOS BERCOS
-                nome_bercos_restric = nome_bercos_restric + berco.getNome() + ", ";
-
-                //    COLOCA BERCOS COM RESTRICAÇÃO JUNTO AO COMPATÍVEIS
-                bercosCompativeis.add(berco);
-            }
-
-            accept.setBercos(bercosCompativeis);
-            // OPERADOR PORTUÁRIO DEVE ANALISAR
-            accept.setStatus("N");
-
-            // CRIA & ENVIA E-MAIL
-
-            msg =
-                    "ID DO ACEITE: "+currentAcceptId+"\n"+
-                            "IMO DO NAVIO: "+accept.getImo()+"\n"+
-                            "CAUSA IDENTIFICADA(SISTEMA): Navio com RESTRIÇÃO! O Ag. Marítimo solicita atracação em berços específicos(excepcional)."+"\n"+
-                            "BERCOS SOLICITADOS(USUÁRIO): "+nome_bercos_restric+"\n"+
-                            "STATUS INPUTADO PARA O ACEITE(SISTEMA): Em processamento"+"\n"+
-                            "OBS DO USUÁRIO: "+accept.getObs()+"\n"+
-                            "DATA CRIAÇÃO DO REGISTRO DE ACEITE: "+accept.getData_create()+"\n"+
-                            "DADOS DO USUÁRIO: "+"ID: "+user.getId()+" E-MAIL: "+user.getEmail()+" NOME: "+user.getName()+" PAPEL: " + ("COMPANY".equals(user.getRole().name()) ? "ADMINISTRATIVO" : "USUÁRIO");
-
-
-            emailService.enviarEmailTexto(destinatario, "Aceite do Navio " + accept.getVessel().getNome() + " - STATUS: BLOQUEADO", msg);
-        } else if (!bercosCompativeis.isEmpty()) {
-
-// </PARTE NOVA>
-
-
-// <PARTE-NOVA-2>
-            // CRIA & ENVIA E-MAIL
-
-            String nome_bercos = "";
-            for(Berco berco : bercosCompativeis) {
-                // GUARDA O NOME DOS BERCOS
-                nome_bercos = nome_bercos + berco.getNome() + ", ";
-
-                //    COLOCA BERCOS COM RESTRICAÇÃO JUNTO AO COMPATÍVEIS
-
-            }
-
-
-            msg =
-                    "ID DO ACEITE: "+currentAcceptId+"\n"+
-                            "IMO DO NAVIO: "+accept.getImo()+"\n"+
-                            "CAUSA IDENTIFICADA(SISTEMA): Navio aceito com sucesso! O Ag. Marítimo solicita atracação e o sistema pode inputar berços automaticamente."+"\n"+
-                            "BERCOS COMPATÍVEIS(SISTEMA): "+nome_bercos+"\n"+
-                            "STATUS INPUTADO PARA O ACEITE(SISTEMA): Aceito"+"\n"+
-                            "OBS DO USUÁRIO: "+accept.getObs()+"\n"+
-                            "DATA CRIAÇÃO DO REGISTRO DE ACEITE: "+accept.getData_create()+"\n"+
-                            "DADOS DO USUÁRIO: "+"ID: "+user.getId()+" E-MAIL: "+user.getEmail()+" NOME: "+user.getName()+" PAPEL: " + ("COMPANY".equals(user.getRole().name()) ? "ADMINISTRATIVO" : "USUÁRIO");
-
-            emailService.enviarEmailTexto(destinatario, "Aceite do Navio " + accept.getVessel().getNome() + " - STATUS: ACEITO", msg);
-// </PARTE-NOVA-2>
-
-            emailService.enviarEmailTexto(accept.getUser().getEmail(), "Aceite do Navio " + accept.getVessel().getNome() + " - STATUS: ACEITO", msg);
-
-
-
-
-
-
-
-
-            accept.setBercos(bercosCompativeis);
-            accept.setStatus("Y");
-        } else {
-//            id, imo, user, status, obs, data de criacao, local hospedagem + URIs
-            if(blackListed) {
-                msg =   "ID DO ACEITE: "+currentAcceptId+"\n"+
-                        "IMO DO NAVIO: "+accept.getImo()+"\n"+
-                        "CAUSA IDENTIFICADA(SISTEMA): Navio problemático, está na BLACK LIST!"+"\n"+
-                        "STATUS INPUTADO PARA O ACEITE(SISTEMA): Em processamento"+"\n"+
-                        "OBS DO USUÁRIO: "+accept.getObs()+"\n"+
-                        "DATA CRIAÇÃO DO REGISTRO DE ACEITE: "+accept.getData_create()+"\n"+
-                        "DADOS DO USUÁRIO: "+"ID: "+user.getId()+" E-MAIL: "+user.getEmail()+" NOME: "+user.getName()+" PAPEL: " + ("COMPANY".equals(user.getRole().name()) ? "ADMINISTRATIVO" : "USUÁRIO");
-            } else {
-                msg =   "ID DO ACEITE: "+currentAcceptId+"\n"+
-                        "IMO DO NAVIO: "+accept.getImo()+"\n"+
-                        "CAUSA IDENTIFICADA(SISTEMA): Navio problemático, de acordo com categoria, loa, dwt e calados cadastrados, nenhum berço o comporta!"+"\n"+
-                        "STATUS INPUTADO PARA O ACEITE(SISTEMA): Em processamento"+"\n"+
-                        "OBS DO USUÁRIO: "+accept.getObs()+"\n"+
-                        "DATA CRIAÇÃO DO REGISTRO DE ACEITE: "+accept.getData_create()+"\n"+
-                        "DADOS DO USUÁRIO: "+"ID: "+user.getId()+" E-MAIL: "+user.getEmail()+" NOME: "+user.getName()+" PAPEL: " + ("COMPANY".equals(user.getRole().name()) ? "ADMINISTRATIVO" : "USUÁRIO");
-
-
-            }
-            emailService.enviarEmailTexto(destinatario, "Aceite do Navio " + accept.getVessel().getNome() + " - STATUS: BLOQUEADO", msg);
-
-            accept.setStatus("N");
-
-        }
-
-        if(msg == null){
-            msg =
-                    "O navio de IMO " + accept.getImo() + " solicitou um aceite.\n\n" +
-                            "ID do Aceite: " + currentAcceptId + "\n" +
-                            "Status atual: Aceito.\n\n" +
-                            "Observação do usuário: " + accept.getObs() + "\n" +
-                            "Data de criação: " + accept.getData_create() + "\n\n" +
-                            "Usuário responsável:\n" +
-                            "ID: " + user.getId() + "\n" +
-                            "Nome: " + user.getName() + "\n" +
-                            "E-mail: " + user.getEmail() + "\n" +
-                            " PAPEL: " + ("COMPANY".equals(user.getRole().name()) ? "ADMINISTRATIVO" : "USUÁRIO");
-
-            emailService.enviarEmailTexto(destinatario, "Solicitação de Aceite Cadastrada", msg);
-
-        }
-
-
-
+        // 11) Salva primeiro pra gerar ID REAL
         accept = acceptRepository.save(accept);
-        var acceptResponse = acceptMapper.toAcceptResponse(accept);
+        Long acceptId = accept.getId();
+
+        // Strings de nomes de berços
+        String nomeBercosComp = bercosCompativeis.stream()
+                .map(b -> String.valueOf(b.getNome()))
+                .reduce("", (a, b) -> a.isEmpty() ? b : a + ", " + b);
+
+        String nomeBercosRestr = bercosRestricao.stream()
+                .map(b -> String.valueOf(b.getNome()))
+                .reduce("", (a, b) -> a.isEmpty() ? b : a + ", " + b);
+
+        // =========================================================
+        // ✅ LÓGICA NOVA:
+        // - ACEITE_COM_RESTRICAO: PROIBIDO NO SALVAR
+        // - se hasRestrics => EM_PROCESSAMENTO (só em editar vira restrição)
+        // =========================================================
+
+        if (hasRestrics) {
+            // mantém os berços compatíveis + os solicitados (sem duplicar)
+            Set<Long> ids = new HashSet<>();
+            for (Berco b : bercosCompativeis) if (b.getId() != null) ids.add(b.getId());
+            for (Berco b : bercosRestricao) {
+                if (b.getId() != null && !ids.contains(b.getId())) {
+                    bercosCompativeis.add(b);
+                    ids.add(b.getId());
+                }
+            }
+
+            accept.setBercos(bercosCompativeis);
+
+            // ✅ aqui NÃO pode ACEITE_COM_RESTRICAO, então vai pra processamento
+            accept.setStatus(AceiteStatus.EM_PROCESSAMENTO);
+
+            msg =
+                    "ID DO ACEITE: " + acceptId + "\n" +
+                            "IMO DO NAVIO: " + accept.getImo() + "\n" +
+                            "CAUSA (SISTEMA): Usuário solicitou berços específicos (restrição) -> análise.\n" +
+                            "BERÇOS SOLICITADOS (USUÁRIO): " + nomeBercosRestr + "\n" +
+                            "BERÇOS COMPATÍVEIS (SISTEMA): " + nomeBercosComp + "\n" +
+                            "STATUS (SISTEMA): EM_PROCESSAMENTO\n" +
+                            "OBS DO USUÁRIO: " + accept.getObs() + "\n" +
+                            "DATA/HORA: " + accept.getDataHoraAccept() + "\n" +
+                            "USUÁRIO: ID=" + user.getId() + " | " + user.getEmail() + " | " + user.getName();
+
+            emailService.enviarEmailTexto(
+                    destinatario,
+                    "Aceite do Navio " + accept.getVessel().getNome() + " - STATUS: EM PROCESSAMENTO",
+                    msg
+            );
+
+        } else if (!blackListed && !bercosCompativeis.isEmpty()) {
+
+            accept.setBercos(bercosCompativeis);
+            accept.setStatus(AceiteStatus.ACEITO);
+
+            msg =
+                    "ID DO ACEITE: " + acceptId + "\n" +
+                            "IMO DO NAVIO: " + accept.getImo() + "\n" +
+                            "CAUSA (SISTEMA): Aceito automaticamente.\n" +
+                            "BERÇOS COMPATÍVEIS (SISTEMA): " + nomeBercosComp + "\n" +
+                            "STATUS (SISTEMA): ACEITO\n" +
+                            "OBS DO USUÁRIO: " + accept.getObs() + "\n" +
+                            "DATA/HORA: " + accept.getDataHoraAccept() + "\n" +
+                            "USUÁRIO: ID=" + user.getId() + " | " + user.getEmail() + " | " + user.getName();
+
+            emailService.enviarEmailTexto(
+                    destinatario,
+                    "Aceite do Navio " + accept.getVessel().getNome() + " - STATUS: ACEITO",
+                    msg
+            );
+
+            emailService.enviarEmailTexto(
+                    user.getEmail(),
+                    "Aceite do Navio " + accept.getVessel().getNome() + " - STATUS: ACEITO",
+                    msg
+            );
+
+        } else {
+
+            accept.setStatus(AceiteStatus.EM_PROCESSAMENTO);
+
+            String causa = blackListed
+                    ? "Navio está na BLACK LIST."
+                    : "Nenhum berço comporta o navio (categoria/LOA/DWT/calados).";
+
+            msg =
+                    "ID DO ACEITE: " + acceptId + "\n" +
+                            "IMO DO NAVIO: " + accept.getImo() + "\n" +
+                            "CAUSA (SISTEMA): " + causa + "\n" +
+                            "STATUS (SISTEMA): EM_PROCESSAMENTO\n" +
+                            "OBS DO USUÁRIO: " + accept.getObs() + "\n" +
+                            "DATA/HORA: " + accept.getDataHoraAccept() + "\n" +
+                            "USUÁRIO: ID=" + user.getId() + " | " + user.getEmail() + " | " + user.getName();
+
+            emailService.enviarEmailTexto(
+                    destinatario,
+                    "Aceite do Navio " + accept.getVessel().getNome() + " - STATUS: EM PROCESSAMENTO",
+                    msg
+            );
+        }
+
+        // 12) salva status final + berços
+        accept = acceptRepository.save(accept);
+
+        AcceptResponse acceptResponse = acceptMapper.toAcceptResponse(accept);
         return acceptAssembler.toModel(acceptResponse);
-
     }
-
-// ~~ ~~ ~~ COLOCAR DENTRO DE SAVE, CASO PRECISE AUTO-ALIMENTAR VESSEL COM OS DADOS DE  ACCEPT
-//    @Transactional
-//    public EntityModel<AcceptResponse> saveAcceptOrUpdatadeVesselAlso(@Valid @RequestParam(name="AcceptRequestForm") String acceptRequestForm) {
-//
-//
-//
-//
-//        Accept savedAccept = acceptRepository.save(accept);
-//
-//        // Atualiza os campos de Vessel, se necessário
-//        Vessel vessel = savedAccept.getVessel();
-//        if (vessel != null) {
-//            boolean updated = false;
-//
-//            // Verifica e atualiza os campos comuns
-//            if (accept.getCommonField1() != null &&
-//                    !accept.getCommonField1().equals(vessel.getCommonField1())) {
-//                vessel.setCommonField1(accept.getCommonField1());
-//                updated = true;
-//            }
-//
-//            if (accept.getCommonField2() != null &&
-//                    !accept.getCommonField2().equals(vessel.getCommonField2())) {
-//                vessel.setCommonField2(accept.getCommonField2());
-//                updated = true;
-//            }
-//
-//            // Salva as alterações em Vessel, se houver
-//            if (updated) {
-//                vesselRepository.save(vessel);
-//            }
-//        }
-//
-//        return savedAccept;
-//
-//
-//    }
-
-
-
-
-
-
-
-    //   ESTATÍSTICA ACEITO, NEGADO, EM ANÁLISE
-    public Map<String, Long> getStatusStatistics() {
-        // Obtem os resultados agrupados diretamente do banco
-        List<Object[]> results = acceptRepository.countByStatus();
-
-        // Mapa para armazenar a estatística traduzida
-        Map<String, Long> statistics = new HashMap<>();
-
-        for (Object[] result : results) {
-            String statusCode = (String) result[0]; // Código de status ("1", "2", "3")
-            Long count = (Long) result[1];         // Contagem de registros
-
-            // Traduzir o status code para o rótulo correspondente
-            String statusLabel = mapStatusCodeToLabel(statusCode);
-            statistics.put(statusLabel, count);
-        }
-
-        return statistics;
-    }
-
-
-    /**
-     * Traduz os códigos de status do banco para rótulos legíveis.
-     *
-     * @param code Código de status (String)
-     * @return Rótulo legível (String)
-     */
-    private String mapStatusCodeToLabel(String code) {
-        switch (code) {
-            case "1":
-                return "aceito";
-            case "2":
-                return "negado";
-            case "3":
-                return "em análise";
-            default:
-                return "desconhecido";
-        }
-    }
-
-
-
-// Json de getStatusStatistics()
-//{
-//        "aceito": 10,
-//        "negado": 5,
-//        "em análise": 8
-//}
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-//     ~~~    BACKUPS(IMPORTANTE)
-
-//       PLANO DE AMARRACAO PORTO(BASEADO NAS REUNIOES)
-//
-//        for (Berco berco : bercos) {
-//
-////               ~  FALTA A VERIFICACAO DAS CATEGORIAS
-//            if ((vessel.getLoa()<=berco.getLoa_max())&&(acceptRequest.getCalado_entrada()<=berco.getCalado_max())&&(acceptRequest.getCalado_saida()<=berco.getCalado_max())&&(vessel.getDwt()<=berco.getDwt())) {
-//
-//                bercosCompativeis.add(berco);
-//            }
-//        }
-
-
-
-
-
-//        for (Berco berco : bercos) {
-//
-//
-//                bercosCompativeis.add(berco);
-//
-//
-//        }
-
-
-
-
-
-
-//            for (Berco berco : bercos) {
-//                if (  vessel.getLoa()!=null
-//                        &&berco.getLoa_max()!=null
-//                        &&vessel.getDwt()!=null
-//                        &&berco.getDwt()!=null
-//                        &&vessel.getPontal()!=null
-//                        &&berco.getCalado_max()!=null
-//                        &&
-//                        vessel.getLoa() <= berco.getLoa_max()
-//                        && vessel.getDwt() <= berco.getDwt()
-//                        && vessel.getPontal() <= berco.getCalado_max()) {
-//                    bercosCompativeis.add(berco);
-//                }
-//            }
-//
-//
-//        // Define status e berço com base nas verificações
-//        if (!bercosCompativeis.isEmpty()) {
-//            accept.setStatus(VeriStatus.valueOf("Y"));
-//            accept.setBercos(bercosCompativeis);
-//        } else {
-////            Esse status representa que necessita-se de averiguação
-//            accept.setStatus(VeriStatus.valueOf("N"));
-//            throw new NegocioException("Nenhum berço compatível.");
-//        }
-
-//       PLANO DE AMARRACAO EM VIGENCIA DO SISTEMA
-//
-//        for (Berco berco : bercos) {
-//            if (vessel.getLoa() <= berco.getLoa_max()
-//                    && vessel.getDwt() <= berco.getDwt()
-//            ) {
-//                bercosCompativeis.add(berco);
-//            }
-//        }
-//
-//
-//        if (!bercosCompativeis.isEmpty()) {
-//            accept.setStatus(VeriStatus.valueOf("Y"));
-//            accept.setBercos(bercosCompativeis);
-//        } else {
-//            accept.setStatus(VeriStatus.valueOf("N"));
-//            throw new NegocioException("Nenhum berço compatível.");
-//        }
-
-
-
-
-//        if ((vessel.getLoa()!=0&vessel.getDwt()!=0)) {
-//            accept.setStatus(VeriStatus.valueOf("Y"));
-//            accept.setBercos(List.of(bercos.get(0)));
-//        }
-//        accept.setStatus(VeriStatus.valueOf("Y"));
-//        accept.setBercos(List.of(bercos.get(0)));
-
-
-////      """  Berços 99, 100, 101, 102, 103, 104 e 105:
-//        if(
-//                (vessel.getLoa()<150&vessel.getDwt()<20.000)
-//                || ((vessel.getLoa()>150&vessel.getLoa()<190)
-//                        &(vessel.getDwt()>20.000&vessel.getDwt()<40.000))
-//                    || (vessel.getLoa()>190&vessel.getDwt()>40.000)
-//                                                                 ) {
-//
-//                                    accept.setStatus(VeriStatus.valueOf("Y"));
-//                                    accept.setBercos(List.of(bercos.get(0)));
-//
-//
-//        }
-//
-//
-////      """  Berços 106 e 108:
-//        else if(
-//                    (vessel.getLoa()<190&vessel.getDwt()<40.000)
-//                    || (vessel.getLoa()>190&vessel.getDwt()>20.000)
-//                                                                 ) {
-//
-//                                    accept.setStatus(VeriStatus.valueOf("Y"));
-//                                    accept.setBercos(List.of(bercos.get(1)));
-//
-//
-//        }
-//
-//
-////      """  GLP:
-//        else if(
-//                   (vessel.getCategoria()=="2"&vessel.getLoa()<100&vessel.getDwt()<10.000)
-//                   || (vessel.getCategoria()=="2"&vessel.getLoa()>100&vessel.getDwt()>10.000)
-//                                                              ) {
-//
-//                                    accept.setStatus(VeriStatus.valueOf("Y"));
-//                                    accept.setBercos(List.of(bercos.get(2)));
-//
-//
-////      """  CONTAINERS:
-//        } else if(
-//                    (vessel.getLoa()<150&vessel.getDwt()<20.000)
-//                    || ((vessel.getLoa()>150&vessel.getLoa()<180)
-//                            &(vessel.getDwt()>20.000&vessel.getDwt()<40.000))
-//                         || (vessel.getLoa()>180&vessel.getDwt()>40.000)
-//                                                                         ) {
-//
-//                                    throw new NegocioException("Nenhum container cadastrado.");
-//
-//
-//        }
-//
-//
-//
-//
-//        else {
-//
-//
-//                                    throw new NegocioException("Nenhum berço compatível.");
-//
-//
-//        }
-
-
-//        if(
-//                (vessel.getLoa()>150&vessel.getDwt()>20.000)
-//        ) {
-//            accept.setStatus(VeriStatus.valueOf("Y"));
-//            accept.setBercos(List.of(bercos.get(0),bercos.get(1)));
-//
-//
-//        }
-//        accept.setStatus(VeriStatus.valueOf("N"));

@@ -1,6 +1,6 @@
-package br.com.treinaweb.twjobs.core.exceptions;
+package br.com.laps.aceite.core.exceptions;
 
-public class AcceptNotFoundException extends ModelNotFoundException{
+public class AcceptNotFoundException extends ModelNotFoundException {
 
     public AcceptNotFoundException(){super("Accept not found.");}
 

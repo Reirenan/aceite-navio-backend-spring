@@ -1,8 +1,6 @@
-package br.com.treinaweb.twjobs.core.repositories;
+package br.com.laps.aceite.core.repositories;
 
-import br.com.treinaweb.twjobs.core.enums.VeriStatus;
-import br.com.treinaweb.twjobs.core.models.Accept;
-import br.com.treinaweb.twjobs.core.models.Vessel;
+import br.com.laps.aceite.core.models.Vessel;
 import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Repository;
 

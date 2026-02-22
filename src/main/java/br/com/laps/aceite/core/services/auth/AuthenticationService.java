@@ -1,6 +1,8 @@
 package br.com.laps.aceite.core.services.auth;
 
+import br.com.laps.aceite.core.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.apache.catalina.realm.AuthenticatedUserRealm;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,8 +17,7 @@ public class AuthenticationService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByEmail(username)
-            .map(AuthenticatedUser::new)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .map(AuthenticatedUser::new)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
-    
 }

@@ -1,4 +1,4 @@
-package br.com.laps.aceite.api.navios.dtos;
+package br.com.laps.aceite.api.vessels.dtos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;

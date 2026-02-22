@@ -1,4 +1,4 @@
-package br.com.treinaweb.twjobs.api.file;
+package br.com.laps.aceite.api.file;
 
 
 import org.springframework.stereotype.Service;

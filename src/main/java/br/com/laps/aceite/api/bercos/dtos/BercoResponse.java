@@ -1,7 +1,5 @@
-package br.com.treinaweb.twjobs.api.bercos.dtos;
+package br.com.laps.aceite.api.bercos.dtos;
 
-import br.com.treinaweb.twjobs.core.models.Accept;
-import br.com.treinaweb.twjobs.core.models.Berco;
 import lombok.*;
 
 import java.util.List;
@@ -17,14 +15,14 @@ public class BercoResponse {
 
     private String nome;
 
-    private Long compri_estrutural;
-    private Long compri_util;
-    private Float dwt;
-    private Long largura;
-    private Long profundidade;
-    private Float calado_max;
-    private Float boca_max;
-    private Float loa_max;
+    private Double compri_estrutural;
+    private Double compri_util;
+    private Double dwt;
+    private Double largura;
+    private Double profundidade;
+    private Double calado_max;
+    private Double boca_max;
+    private Double loa_max;
     private String categoria;
     private List<String> accepts;
     

@@ -1,16 +1,19 @@
-package br.com.laps.aceite.api.navios.assembler;
+package br.com.laps.aceite.api.vessels.assembler;
 
+import br.com.laps.aceite.api.vessels.controllers.VesselRestController;
+import br.com.laps.aceite.api.vessels.dtos.VesselResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
+import org.springframework.hateoas.server.SimpleRepresentationModelAssembler;
 import org.springframework.stereotype.Component;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Component
-public class VesselAssembler {
+public class VesselAssembler implements SimpleRepresentationModelAssembler<VesselResponse> {
     @Override
     public void addLinks(EntityModel<VesselResponse> resource) {
         var id = resource.getContent().getId();

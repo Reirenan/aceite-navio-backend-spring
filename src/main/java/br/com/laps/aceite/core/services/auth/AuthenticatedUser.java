@@ -1,5 +1,5 @@
 package br.com.laps.aceite.core.services.auth;
-
+import br.com.laps.aceite.core.models.User;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -48,5 +48,5 @@ public class AuthenticatedUser implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
-    
+
 }

@@ -1,36 +1,31 @@
-package br.com.treinaweb.twjobs.core.repositories;
+package br.com.laps.aceite.core.repositories;
+
+import br.com.laps.aceite.core.models.User;
+import br.com.laps.aceite.core.enums.Role;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
 
-import br.com.treinaweb.twjobs.core.enums.EmailActivation;
-import br.com.treinaweb.twjobs.core.enums.Role;
-import org.springframework.data.jpa.repository.JpaRepository;
-
-import br.com.treinaweb.twjobs.core.models.User;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
 public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
+
+    boolean existsByEmail(String email);
+
+    boolean existsBySendEmailTrueAndIdNot(Long id);
+
     User findNameByEmail(String email);
 
-    //Como uso código SQL aqui então (talvez) dependendo do PC a sintaxe pode causar erro, ou não.
-    @Query(value = "SELECT role FROM User WHERE role = (SELECT role FROM User WHERE email=:customer) LIMIT 1;", nativeQuery = true)
-    List<Role> findTheRoleByEmail(@Param("customer") String email);
+    @Query(value = "SELECT role FROM users WHERE email = :email LIMIT 1", nativeQuery = true)
+    Role findRoleByEmail(@Param("email") String email);
 
-
-//    ESTATÍSTICA
     @Query("SELECT COUNT(u) FROM User u")
     long countAllUsers();
 
-    Boolean existsBySendEmail(Boolean sendEmail);
-
-    void deleteById(Long id);
-
     Optional<User> findBySendEmail(Boolean sendEmail);
 
-
-
+    boolean existsBySendEmail(Boolean sendEmail);
 }

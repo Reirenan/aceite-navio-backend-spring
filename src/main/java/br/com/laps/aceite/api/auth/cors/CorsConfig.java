@@ -1,5 +1,4 @@
-package br.com.treinaweb.twjobs.api.auth.cors;
-
+package br.com.laps.aceite.api.auth.cors;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

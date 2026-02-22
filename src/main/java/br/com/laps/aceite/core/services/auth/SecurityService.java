@@ -1,5 +1,7 @@
 package br.com.laps.aceite.core.services.auth;
 
+import br.com.laps.aceite.core.models.User;
+import br.com.laps.aceite.core.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
@@ -11,7 +13,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SecurityService {
 
-    private final JobRepository jobRepository;
+    private final UserRepository userRepository;
 
     public Authentication getAuthentication() {
         return SecurityContextHolder.getContext().getAuthentication();
@@ -20,8 +22,8 @@ public class SecurityService {
     public boolean isAuthenticated() {
         var authentication = getAuthentication();
         return authentication != null
-            && !(authentication instanceof AnonymousAuthenticationToken)
-            && authentication.isAuthenticated();
+                && !(authentication instanceof AnonymousAuthenticationToken)
+                && authentication.isAuthenticated();
     }
 
     public User getCurrentUser() {
@@ -31,9 +33,4 @@ public class SecurityService {
         var authentication = (AuthenticatedUser) getAuthentication().getPrincipal();
         return authentication.getUser();
     }
-
-    public boolean isOwner(String companyEmail, Long jobId) {
-        return jobRepository.existsByCompanyEmailAndId(companyEmail, jobId);
-    }
-    
 }

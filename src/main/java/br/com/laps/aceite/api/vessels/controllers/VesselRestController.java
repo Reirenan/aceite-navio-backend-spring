@@ -1,26 +1,28 @@
-package br.com.laps.aceite.api.navios.controllers;
+package br.com.laps.aceite.api.vessels.controllers;
 
 
-import br.com.treinaweb.twjobs.api.file.FileManagerController;
-import br.com.treinaweb.twjobs.api.vessels.assemblers.VesselAssembler;
-import br.com.treinaweb.twjobs.api.vessels.dtos.VesselRequest;
-import br.com.treinaweb.twjobs.api.vessels.dtos.VesselResponse;
-import br.com.treinaweb.twjobs.api.vessels.mappers.VesselMapper;
-import br.com.treinaweb.twjobs.core.exceptions.AceiteNotFoundException;
-import br.com.treinaweb.twjobs.core.exceptions.NegocioException;
-import br.com.treinaweb.twjobs.core.exceptions.VesselNotFoundException;
-import br.com.treinaweb.twjobs.core.models.Disco;
-import br.com.treinaweb.twjobs.core.models.User;
-import br.com.treinaweb.twjobs.core.models.Vessel;
-import br.com.treinaweb.twjobs.core.permissions.TWJobsPermissions;
-import br.com.treinaweb.twjobs.core.repositories.UserRepository;
-import br.com.treinaweb.twjobs.core.repositories.VesselCustomRepository;
-import br.com.treinaweb.twjobs.core.repositories.VesselRepository;
-import br.com.treinaweb.twjobs.core.service.EmailService;
-import br.com.treinaweb.twjobs.core.services.CadastroVesselService;
-import br.com.treinaweb.twjobs.core.services.auth.SecurityService;
+import br.com.laps.aceite.api.file.FileManagerController;
+import br.com.laps.aceite.api.vessels.assembler.VesselAssembler;
+import br.com.laps.aceite.api.vessels.dtos.VesselRequest;
+import br.com.laps.aceite.api.vessels.dtos.VesselResponse;
+import br.com.laps.aceite.api.vessels.mappers.VesselMapper;
+import br.com.laps.aceite.core.exceptions.AceiteNotFoundException;
+import br.com.laps.aceite.core.exceptions.NegocioException;
+import br.com.laps.aceite.core.exceptions.VesselNotFoundException;
+import br.com.laps.aceite.core.models.Disco;
+import br.com.laps.aceite.core.models.User;
+import br.com.laps.aceite.core.models.Vessel;
+import br.com.laps.aceite.core.permissions.PortoUsersPermissions;
+import br.com.laps.aceite.core.repositories.UserRepository;
+import br.com.laps.aceite.core.repositories.VesselCustomRepository;
+import br.com.laps.aceite.core.repositories.VesselRepository;
+import br.com.laps.aceite.core.services.auth.SecurityService;
+import br.com.laps.aceite.core.services.email.EmailService;
+import br.com.laps.aceite.core.services.navio.CadastroVesselService;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.models.media.EmailSchema;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -76,6 +78,7 @@ public class VesselRestController {
         List<VesselResponse> lista = vesselRepository.findAll(Sort.by(Sort.Direction.DESC, "id")).stream()
                 .map(vesselMapper::toVesselResponse)
                 .collect(Collectors.toList());
+
         return vesselAssembler.toCollectionModel(lista);
     }
 
@@ -298,8 +301,7 @@ public class VesselRestController {
         int[] fator = {7, 6, 5, 4, 3, 2};
 
 
-        Long l = vessel.getImo();
-        String imo = Long.toString(l);
+        String imo = vessel.getImo();
 
         int[] newImo = new int[imo.length()];
         for(int i = 0; i < imo.length(); i++) {
@@ -355,16 +357,16 @@ public class VesselRestController {
 
                         "DIMENSÕES DO NAVIO\n\n" +
 
-                        "LOA: " + (vessel.getLoa() != null ? vessel.getLoa() + " m" : "Não informado") + "\n" +
-                        "Boca: " + (vessel.getBoca() != null ? vessel.getBoca() + " m" : "Não informado") + "\n" +
-                        "DWT: " + (vessel.getDwt() != null ? vessel.getDwt() + " t" : "Não informado") + "\n" +
-                        "Pontal: " + (vessel.getPontal() != null ? vessel.getPontal() + " m" : "Não informado") + "\n\n" +
+                        "LOA: " + (vessel.getLoa() != 0 ? vessel.getLoa() + " m" : "Não informado") + "\n" +
+                        "Boca: " + (vessel.getBoca() != 0 ? vessel.getBoca() + " m" : "Não informado") + "\n" +
+                        "DWT: " + (vessel.getDwt() != 0 ? vessel.getDwt() + " t" : "Não informado") + "\n" +
+                        "Pontal: " + (vessel.getPontal() != 0 ? vessel.getPontal() + " m" : "Não informado") + "\n\n" +
 
                         "CALADOS\n\n" +
 
-                        "Calado de Entrada: " + (vessel.getCalado_entrada() != null ? vessel.getCalado_entrada() + " m" : "Não informado") + "\n" +
-                        "Calado de Saída: " + (vessel.getCalado_saida() != null ? vessel.getCalado_saida() + " m" : "Não informado") + "\n" +
-                        "Calado Máximo: " + (vessel.getCalado_max() != null ? vessel.getCalado_max() + " m" : "Não informado") + "\n\n" +
+                        "Calado de Entrada: " + (vessel.getCalado_entrada() != 0 ? vessel.getCalado_entrada() + " m" : "Não informado") + "\n" +
+                        "Calado de Saída: " + (vessel.getCalado_saida() != 0 ? vessel.getCalado_saida() + " m" : "Não informado") + "\n" +
+                        "Calado Máximo: " + (vessel.getCalado_max() != 0 ? vessel.getCalado_max() + " m" : "Não informado") + "\n\n" +
 
                         "DOCUMENTOS\n\n" +
 
@@ -473,7 +475,8 @@ public class VesselRestController {
 
     @DeleteMapping("/{id}")
 //    @TWJobsPermissions.IsOwner
-    @TWJobsPermissions.IsCompany
+    @PortoUsersPermissions.IsFuncionarioCoace
+    @PortoUsersPermissions.IsAdministrador
     public ResponseEntity<?> delete(@PathVariable Long id) {
         var vessel = vesselRepository.findById(id)
                 .orElseThrow(VesselNotFoundException::new);

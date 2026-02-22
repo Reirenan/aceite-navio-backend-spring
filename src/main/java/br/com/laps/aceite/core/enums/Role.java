@@ -1,8 +1,7 @@
-package br.com.treinaweb.twjobs.core.enums;
+package br.com.laps.aceite.core.enums;
 
 public enum Role {
-
-    COMPANY,
-    CANDIDATE;
-    
+    AGENTE_NAVIO,
+    FUNCIONARIO_COACE,
+    ADMINISTRADOR,;
 }

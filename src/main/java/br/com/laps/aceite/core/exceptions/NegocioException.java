@@ -1,4 +1,4 @@
-package br.com.treinaweb.twjobs.core.exceptions;
+package br.com.laps.aceite.core.exceptions;
 
 public class NegocioException extends RuntimeException{
     public NegocioException(String message) {

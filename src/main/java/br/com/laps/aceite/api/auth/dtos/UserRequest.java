@@ -1,6 +1,6 @@
-package br.com.treinaweb.twjobs.api.auth.dtos;
+package br.com.laps.aceite.api.auth.dtos;
 
-import br.com.treinaweb.twjobs.core.enums.Role;
+import br.com.laps.aceite.core.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;

@@ -1,4 +1,4 @@
-package br.com.laps.aceite.api.navios.dtos;
+package br.com.laps.aceite.api.vessels.dtos;
 
 import lombok.*;
 

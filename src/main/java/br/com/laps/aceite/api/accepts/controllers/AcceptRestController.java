@@ -1,32 +1,31 @@
-package br.com.treinaweb.twjobs.api.accepts.controllers;
+package br.com.laps.aceite.api.accepts.controllers;
 
-//import br.com.treinaweb.twjobs.api.ships.assemblers.SkillAssembler;
-import br.com.treinaweb.twjobs.api.accepts.assemblers.AcceptAssembler;
-import br.com.treinaweb.twjobs.api.accepts.dtos.AcceptRequest;
-import br.com.treinaweb.twjobs.api.accepts.dtos.AcceptResponse;
-import br.com.treinaweb.twjobs.api.accepts.mappers.AcceptMapper;
-import br.com.treinaweb.twjobs.api.file.FileManagerController;
-import br.com.treinaweb.twjobs.api.vessels.dtos.VesselResponse;
-import br.com.treinaweb.twjobs.core.enums.Role;
-import br.com.treinaweb.twjobs.core.enums.VeriStatus;
-import br.com.treinaweb.twjobs.core.exceptions.AcceptNotFoundException;
-import br.com.treinaweb.twjobs.core.exceptions.NegocioException;
-import br.com.treinaweb.twjobs.core.models.Accept;
-import br.com.treinaweb.twjobs.core.models.Berco;
-import br.com.treinaweb.twjobs.core.models.User;
-import br.com.treinaweb.twjobs.core.models.Vessel;
-import br.com.treinaweb.twjobs.core.permissions.TWJobsPermissions;
-import br.com.treinaweb.twjobs.core.repositories.AcceptCustomRepository;
-import br.com.treinaweb.twjobs.core.repositories.AcceptRepository;
-import br.com.treinaweb.twjobs.core.repositories.UserRepository;
-import br.com.treinaweb.twjobs.core.repositories.VesselRepository;
-import br.com.treinaweb.twjobs.core.service.CadastroAcceptService;
-import br.com.treinaweb.twjobs.core.service.EmailService;
-import br.com.treinaweb.twjobs.core.services.auth.SecurityService;
+
+import br.com.laps.aceite.api.accepts.assemblers.AcceptAssembler;
+import br.com.laps.aceite.api.accepts.dtos.AcceptResponse;
+import br.com.laps.aceite.api.accepts.mappers.AcceptMapper;
+import br.com.laps.aceite.api.file.FileManagerController;
+import br.com.laps.aceite.core.enums.AceiteStatus;
+import br.com.laps.aceite.core.permissions.PortoUsersPermissions;
+import br.com.laps.aceite.core.repositories.AcceptCustomRepository;
+import br.com.laps.aceite.core.repositories.AcceptRepository;
+import br.com.laps.aceite.core.repositories.UserRepository;
+import br.com.laps.aceite.core.repositories.VesselRepository;
+import br.com.laps.aceite.core.services.accept.CadastroAcceptService;
+import br.com.laps.aceite.core.services.auth.SecurityService;
+import br.com.laps.aceite.core.services.email.EmailService;
+import br.com.laps.aceite.api.accepts.dtos.AcceptRequest;
+
+import br.com.laps.aceite.core.enums.Role;
+import br.com.laps.aceite.core.exceptions.AcceptNotFoundException;
+import br.com.laps.aceite.core.exceptions.NegocioException;
+import br.com.laps.aceite.core.models.Accept;
+import br.com.laps.aceite.core.models.Berco;
+import br.com.laps.aceite.core.models.User;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,13 +45,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
-
-
-//"""
-// Importante, quando eu tenho certeza que o dado existe, não usar findById: https://www.baeldung.com/spring-data-findbyid-vs-getbyid
-//            """
 
 
 @RestController
@@ -166,7 +159,7 @@ public class AcceptRestController {
         Long userId = user.getId();
         Accept accept;
 
-        if(user.getRole()==Role.COMPANY) {
+        if(user.getRole()==Role.FUNCIONARIO_COACE) {
             accept = acceptRepository.findById(id)
                     .orElseThrow(AcceptNotFoundException::new);
         } else {
@@ -185,22 +178,16 @@ public class AcceptRestController {
     @ResponseStatus(code = HttpStatus.CREATED)
     public EntityModel<AcceptResponse>
     create(@Valid @RequestParam(name="acceptRequestForm", required=true) String acceptRequestForm,  @RequestParam(name="foto", required=false) MultipartFile foto) throws JsonProcessingException {return cadastroAcceptService.salvar(acceptRequestForm, foto,"pauloacb2020@gmail.com");}
-//    renan.montenegro2018@gmail.com
 
     @PutMapping("/{id}")
-    @TWJobsPermissions.IsCompany
+    @PortoUsersPermissions.IsFuncionarioCoace
+    @PortoUsersPermissions.IsAdministrador
     public EntityModel<AcceptResponse> update(
-//            @RequestBody @Valid AcceptRequest acceptRequest,
-//            @PathVariable Long id
+
 
             @Valid @RequestParam(name="acceptRequestForm", required=true) String acceptRequestForm, @PathVariable Long id,  @RequestParam(name="foto", required=false) MultipartFile foto
     ) throws JsonProcessingException {
-/*
-  Apenas admin podem setar manualmente o Status. O Candidate não pode.
-  Adicionar essa funcionalidade.
-  O mesmo para berços.
-*/
-        //verifica extensao
+
         if(foto != null) {
             String filename = foto.getOriginalFilename();
             String extension = null;
@@ -233,108 +220,65 @@ public class AcceptRestController {
         Long userId = user.getId();
 
         Accept accept = new Accept();
-//        APENAS ADMIN PODEM ALTERAR OS DADOS DO ACEITE
-//        if(user.getRole()==Role.COMPANY) {
+
 
         accept = acceptRepository.findById(id)
                 .orElseThrow(AcceptNotFoundException::new);
 
         var acceptData = acceptMapper.toAccept(acceptRequest);
-//            acceptData.setId(id);
 
 
-
-
-
-
-//        if(user.getRole()!= Role.COMPANY &&(!Objects.equals(accept.getUser().getId(), userId))) {throw new NegocioException("Você não é proprietário.");}
-
-
-//            if(acceptData.getStatus() != null) {
-//
-//            }
-        acceptData.setData_update(String.valueOf(LocalDate.now()));
-
-        acceptData.setTime_update(String.valueOf(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))));
 
 
         var path = accept.getPath();
 
         acceptData.setPath(path);
 
-        //se enviar arquivo, pega o nome dele
         if(foto!=null) {
             acceptData.setPath(foto.getOriginalFilename());
             fileManagerController.uploadFile(foto);
-            //SE NÃO ENVIAR NENHUM ARQUIVO
         }
 
-        // else {
 
-        //     acceptData.setPath(path);
-        // }
-
-        //copia os campos que eu setar de uma accept para acceptData - ja preenche logo
         BeanUtils.copyProperties(acceptData, accept, "id", "dataAccept", "data_create", "time_accept", "time_create","vessel", "user", "bercos");
-
-//            if(acceptData.getPath()==null) {
-//                accept.setPath(path);
-//            }
-
-
 
         accept = acceptRepository.save(accept);
 
-//        } else {
-//            throw new NegocioException("Não tem permissão.");
-//        }
-
         var acceptResponse = acceptMapper.toAcceptResponse(accept);
-
-        //<ALTERAÇÕES 05/01/2026[->>]>
 
         String destinatario_admin = String.valueOf(userRepository.findBySendEmail(Boolean.TRUE).get().getEmail());
 
         String nome_bercos_autori = "";
         for(Berco berco : accept.getBercos()) {
-            // GUARDA O NOME DOS BERCOS
             nome_bercos_autori = nome_bercos_autori + berco.getNome() + ", ";
         }
-        //<ALTERAÇÕES 22/11/25[->>] >
-
 
 
         String msg = "";
 
-// ID DO ACEITE
         if (accept.getId() != null) {
             msg = msg + "ID DO ACEITE: " + accept.getId() + "\n\n";
         }
 
-// IMO DO NAVIO
         if (accept.getVessel() != null && accept.getVessel().getImo() != null && !accept.getVessel().getImo().equals("")) {
             msg = msg + "IMO DO NAVIO: " + accept.getVessel().getImo() + "\n\n";
         }
 
-// BERÇOS AUTORIZADOS
         if ("Y".equals(accept.getStatus()) && nome_bercos_autori != null && !nome_bercos_autori.equals("")) {
             msg = msg + "BERÇOS AUTORIZADOS: " + nome_bercos_autori + "\n\n";
         }
 
-// STATUS ATUAL DO ACEITE
         if (accept.getStatus() != null) {
             msg = msg + "STATUS ATUAL DO ACEITE: " + traduzStatus(accept.getStatus()) + "\n\n";
         }
 
-// COMENTÁRIO RESPOSTA (PORTO)
         if (accept.getRestricoes() != null && !accept.getRestricoes().equals("")) {
             msg = msg + "COMENTÁRIO RESPOSTA (PORTO): " + accept.getRestricoes() + "\n\n";
         }
 
-// DATA E HORA
-        if (accept.getData_update() != null && accept.getTime_update() != null) {
+        if (accept.getDataHoraAccept() != null) {
             msg = msg + "DATA E HORA DESTA RESPOSTA: "
-                    + accept.getData_update() + ", " + accept.getTime_update();
+                    + accept.getDataHoraAccept() + "\n\n";
         }
 
 
@@ -344,57 +288,44 @@ public class AcceptRestController {
         emailService.enviarEmailTexto(destinatario_admin, "Aceite do Navio " + accept.getVessel().getNome() +"  - RESPOSTA DA SOLICITAÇÃO ", msg);
 
 
-
-        //<ALTERAÇÕES 22/11/25[->>]>
-        //<ALTERAÇÕES 05/01/2026[<<-]>
-
-
         return acceptAssembler.toModel(acceptResponse);
 
     }
-    private String traduzStatus(String status) {
+    private String traduzStatus(AceiteStatus status) {
+
+        if (status == null) {
+            return "Status desconhecido";
+        }
+
         switch (status) {
-            case "Y": return "Navio Aceito";
-            case "NE": return "Aceite Negado";
-            case "YR": return "Aceito com Restrição";
-            case "N": return "Em processamento";
-            case "EM": return "Em avaliação";
-            default: return "Status desconhecido";
+            case ACEITO:
+                return "Navio Aceito";
+
+            case NEGADO:
+                return "Aceite Negado";
+
+            case ACEITE_COM_RESTRICAO:
+                return "Aceito com Restrição";
+
+            case EM_PROCESSAMENTO:
+                return "Em processamento";
+
+            default:
+                return "Status desconhecido";
         }
     }
     @DeleteMapping("/{id}")
-//    @TWJobsPermissions.IsOwner
-    @TWJobsPermissions.IsCompany
+
+    @PortoUsersPermissions.IsFuncionarioCoace
+    @PortoUsersPermissions.IsAdministrador
     public ResponseEntity<?> delete(@PathVariable Long id) {
         var accept = acceptRepository.findById(id)
                 .orElseThrow(AcceptNotFoundException::new);
         User user = securityService.getCurrentUser();
         Long userId = user.getId();
-//      ~~~     Se vc não é COMPANY nem dono dos dados
-//        if(user.getRole()!= Role.COMPANY &&(!Objects.equals(accept.getUser().getId(), userId))) {
-//            throw new NegocioException("Você não é proprietário.");
-//        }
+
         acceptRepository.delete(accept);
         return ResponseEntity.noContent().build();
     }
 
 }
-
-
-
-//        ~~~   DADOS FIXOS
-//        acceptCurrent.setData_create(accept.getData_create());
-//        acceptCurrent.setDataAccept(accept.getDataAccept());
-//        acceptCurrent.setUser(accept.getUser());
-//        acceptCurrent.setVessel(accept.getVessel());
-////        ~~~   DADOS MUTÁVEIS
-//        if(acceptCurrent.getStatus()==accept.getStatus()) {
-//            acceptCurrent.setStatus(accept.getStatus())
-//            ;
-//        }
-////        else if(acceptCurrent.getStatus()==Role.)
-//
-//        else if(user.getRole()!= Role.COMPANY){throw new NegocioException("Você não tem permissão para alterar o status do aceite.");}
-//        if(Objects.equals(accept.getObs(), acceptCurrent.getObs())) {acceptCurrent.setObs(accept.getObs());}
-//        if(Objects.equals(accept.getImo(), acceptCurrent.getImo())) {acceptCurrent.setImo(accept.getImo());}
-//        if((user.getRole()==Role.COMPANY) && (acceptCurrent.getBercos()==accept.getBercos())) {acceptCurrent.setBercos(accept.getBercos());}

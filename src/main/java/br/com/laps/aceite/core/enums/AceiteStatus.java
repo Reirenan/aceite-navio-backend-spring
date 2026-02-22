@@ -1,7 +1,8 @@
 package br.com.laps.aceite.core.enums;
 
-public enum Role {
-    AGENTE_NAVIO,
-    FUNCIONARIO_COACE,
-    ADMINISTRADOR,;
+public enum AceiteStatus {
+    ACEITO,
+    NEGADO,
+    EM_PROCESSAMENTO,
+    ACEITE_COM_RESTRICAO,
 }

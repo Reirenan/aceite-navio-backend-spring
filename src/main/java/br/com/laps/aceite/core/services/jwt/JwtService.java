@@ -1,6 +1,7 @@
 package br.com.laps.aceite.core.services.jwt;
 
 
+import br.com.laps.aceite.core.enums.Role;
 
 public interface JwtService {
 

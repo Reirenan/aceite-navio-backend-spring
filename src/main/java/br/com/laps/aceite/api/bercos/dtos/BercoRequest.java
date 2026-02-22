@@ -1,11 +1,12 @@
-package br.com.treinaweb.twjobs.api.bercos.dtos;
+package br.com.laps.aceite.api.bercos.dtos;
 
-import br.com.treinaweb.twjobs.core.models.Accept;
-import br.com.treinaweb.twjobs.core.validators.VesselImoIsUnique;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
@@ -15,23 +16,35 @@ import java.util.List;
 @AllArgsConstructor
 public class BercoRequest {
 
-    //   AJEITAR
-
-//    private Long user;
-//not empty não está funcionando. Ajeiter.
-//    @NotEmpty
-
+    @NotBlank
     private String nome;
 
-    private Long compri_estrutural;
-    private Long compri_util;
-    private Float dwt;
-    private Long largura;
-    private Long profundidade;
-    private Float calado_max;
-    private Float boca_max;
-    private Float loa_max;
+    @NotNull
+    private Double compriEstrutural;
+
+    @NotNull
+    private Double compriUtil;
+
+    @NotNull
+    private Double dwt;
+
+    @NotNull
+    private Double largura;
+
+    @NotNull
+    private Double profundidade;
+
+    @NotNull
+    private Double caladoMax;
+
+    @NotNull
+    private Double bocaMax;
+
+    @NotNull
+    private Double loaMax;
+
+    @NotBlank
     private String categoria;
-//    private List<Long> accepts; //Novo request que não possua essa linha.
-    private List<Accept> accepts;
+
+    //private List<Accept> accepts;
 }

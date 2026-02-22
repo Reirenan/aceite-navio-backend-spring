@@ -1,5 +1,8 @@
 package br.com.laps.aceite.core.services.jwt;
 
+import br.com.laps.aceite.config.JwtConfigProperties;
+import br.com.laps.aceite.core.enums.Role;
+import br.com.laps.aceite.core.exceptions.JwtServiceException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

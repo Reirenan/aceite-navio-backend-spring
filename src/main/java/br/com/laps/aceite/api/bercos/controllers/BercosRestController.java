@@ -1,22 +1,20 @@
-package br.com.treinaweb.twjobs.api.bercos.controllers;
+package br.com.laps.aceite.api.bercos.controllers;
 
 
-import br.com.treinaweb.twjobs.api.bercos.assemblers.BercosAssembler;
-import br.com.treinaweb.twjobs.api.bercos.dtos.BercoRequest;
-import br.com.treinaweb.twjobs.api.bercos.dtos.BercoResponse;
-import br.com.treinaweb.twjobs.api.bercos.mappers.BercoMapper;
-import br.com.treinaweb.twjobs.core.enums.VeriStatus;
-import br.com.treinaweb.twjobs.core.exceptions.AceiteNotFoundException;
-import br.com.treinaweb.twjobs.core.exceptions.NegocioException;
-import br.com.treinaweb.twjobs.core.exceptions.BercoNotFoundException;
-import br.com.treinaweb.twjobs.core.models.Berco;
-import br.com.treinaweb.twjobs.core.models.Vessel;
-import br.com.treinaweb.twjobs.core.permissions.TWJobsPermissions;
-import br.com.treinaweb.twjobs.core.repositories.BercoCustomRepository;
-import br.com.treinaweb.twjobs.core.repositories.BercoRepository;
-import br.com.treinaweb.twjobs.core.repositories.VesselRepository;
-import br.com.treinaweb.twjobs.core.services.CadastroVesselService;
-import br.com.treinaweb.twjobs.core.services.auth.SecurityService;
+import br.com.laps.aceite.api.bercos.assemblers.BercosAssembler;
+import br.com.laps.aceite.api.bercos.dtos.BercoRequest;
+import br.com.laps.aceite.api.bercos.dtos.BercoResponse;
+import br.com.laps.aceite.api.bercos.mappers.BercoMapper;
+import br.com.laps.aceite.core.enums.VeriStatus;
+import br.com.laps.aceite.core.exceptions.BercoNotFoundException;
+import br.com.laps.aceite.core.models.Vessel;
+import br.com.laps.aceite.core.permissions.PortoUsersPermissions;
+import br.com.laps.aceite.core.repositories.BercoCustomRepository;
+import br.com.laps.aceite.core.repositories.BercoRepository;
+import br.com.laps.aceite.core.repositories.VesselRepository;
+import br.com.laps.aceite.core.services.auth.SecurityService;
+import br.com.laps.aceite.core.services.navio.CadastroVesselService;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -49,7 +47,9 @@ public class BercosRestController {
     private final VesselRepository vesselRepository;
     private final BercoCustomRepository bercoCustomRepository;
 
-
+    @PortoUsersPermissions.IsFuncionarioCoace
+    @PortoUsersPermissions.IsAdministrador
+    @PortoUsersPermissions.IsAgenteNavio
     @GetMapping
     public CollectionModel<EntityModel<BercoResponse>> findAll(Pageable pageable) {
         Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("id").descending());
@@ -58,6 +58,9 @@ public class BercosRestController {
                 .map(bercoMapper::toBercoResponse);
         return pagedResourcesAssembler.toModel(bercos, bercoAssembler);
     }
+    @PortoUsersPermissions.IsFuncionarioCoace
+    @PortoUsersPermissions.IsAdministrador
+    @PortoUsersPermissions.IsAgenteNavio
     @GetMapping("/sem-paginacao")
     public CollectionModel<EntityModel<BercoResponse>> findAllSemPaginacao() {
         List<BercoResponse> lista = bercoRepository.findAll().stream()
@@ -65,6 +68,9 @@ public class BercosRestController {
                 .collect(Collectors.toList());
         return bercoAssembler.toCollectionModel(lista);
     }
+    @PortoUsersPermissions.IsFuncionarioCoace
+    @PortoUsersPermissions.IsAdministrador
+    @PortoUsersPermissions.IsAgenteNavio
     @GetMapping("/{id}")
     public EntityModel<BercoResponse> findById(@PathVariable Long id) {
         var berco = bercoRepository.findById(id)
@@ -72,7 +78,9 @@ public class BercosRestController {
         var bercoResponse = bercoMapper.toBercoResponse(berco);
         return bercoAssembler.toModel(bercoResponse);
     }
-
+    @PortoUsersPermissions.IsFuncionarioCoace
+    @PortoUsersPermissions.IsAdministrador
+    @PortoUsersPermissions.IsAgenteNavio
     @GetMapping("/custom")
     public List<BercoResponse> custom(@RequestParam(value = "id", required = false) Long id, @RequestParam(value = "categoria", required = false) String categoria, @RequestParam(value = "nome", required = false) String nome){
 
@@ -85,14 +93,10 @@ public class BercosRestController {
         return bercos;
     }
 
-//    @GetMapping("statistics/count")
-//    @TWJobsPermissions.IsCompany
-//    public Long howManyAccepts() {
-//        return bercoRepository.countAllBercos();
-//    }
 
     @ResponseStatus(HttpStatus.CREATED)
-    @TWJobsPermissions.IsCompany
+    @PortoUsersPermissions.IsFuncionarioCoace
+    @PortoUsersPermissions.IsAdministrador
     @PostMapping
     public EntityModel<BercoResponse> create(@Valid @RequestBody BercoRequest bercoRequest) {
         var berco = bercoMapper.toBerco(bercoRequest);
@@ -111,8 +115,8 @@ public class BercosRestController {
 
 
     @PutMapping("/{id}")
-//    @TWJobsPermissions.IsOwner
-    @TWJobsPermissions.IsCompany
+    @PortoUsersPermissions.IsFuncionarioCoace
+    @PortoUsersPermissions.IsAdministrador
     public EntityModel<BercoResponse> update(
             @RequestBody @Valid BercoRequest bercoRequest,
             @PathVariable Long id
@@ -134,8 +138,8 @@ public class BercosRestController {
     }
 
     @DeleteMapping("/{id}")
-//    @TWJobsPermissions.IsOwner
-    @TWJobsPermissions.IsCompany
+    @PortoUsersPermissions.IsFuncionarioCoace
+    @PortoUsersPermissions.IsAdministrador
     public ResponseEntity<?> delete(@PathVariable Long id) {
         var berco = bercoRepository.findById(id)
                 .orElseThrow(BercoNotFoundException::new);
@@ -150,9 +154,5 @@ public class BercosRestController {
 
         return ResponseEntity.noContent().build();
     }
-
-//    Continuar colocando os métodos e substituindo por vessels.
-//    Depois corrigir os objetos que talvez ainda não existam
-//    Testar o cadastro de um vessel pra ver se guarda o user_id
     
 }

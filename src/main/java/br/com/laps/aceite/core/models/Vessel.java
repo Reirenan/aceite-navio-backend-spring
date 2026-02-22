@@ -1,29 +1,21 @@
-package br.com.treinaweb.twjobs.core.models;
+package br.com.laps.aceite.core.models;
 
-import br.com.treinaweb.twjobs.core.enums.AceiteStatus;
-import br.com.treinaweb.twjobs.core.enums.CategoriaVessel;
-import br.com.treinaweb.twjobs.core.enums.VeriStatus;
+import br.com.laps.aceite.core.enums.VeriStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
-@Data
 @Entity
-@Builder
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Vessel {
-
-    //   TESTAR
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,76 +23,60 @@ public class Vessel {
     private Long id;
 
     @ToString.Include
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-//    NOT NULL
-    @Column( nullable = false, length = 50)
-    //@Column(nullable = false, unique = true, length = 50)
-    private Long imo;
+    @Column(nullable = false)
+    private String imo;
 
+    @Column(length = 20)
     private String mmsi;
 
+    @Column(length = 150)
     private String nome;
 
-//    NOT NULL
-    @Column( nullable = false, length = 100)
-    private Float loa;
+    @Column(nullable = false)
+    private double loa;
 
-    private Float boca;
+    private double boca;
 
-//    NOT NULL
-    @Column( nullable = false, length = 100)
-    private Float dwt;
+    @Column(nullable = false)
+    private double dwt;
 
-    private Float pontal;
+    private double pontal;
 
-    private Float ponte_mfold;
+    private double ponte_mfold;
 
-    private Float mfold_quilha;
+    private double mfold_quilha;
 
-//    NOT NULL
-    @Column( nullable = false, length = 100)
+    @Column(nullable = false, length = 100)
     private String categoria;
 
-//    private Integer flag;
-
-    @Column(nullable = true, length = 255)
+    @Column(length = 255)
     private String flag;
 
+    @Column(length = 1000)
     private String obs;
 
-    @Column(nullable = true, length = 10)
-    private Float calado_entrada;
+    private double calado_entrada;
 
-    @Column(nullable = true, length = 10)
-    private Float calado_saida;
+    private double calado_saida;
 
-    @Column(nullable = false, length = 10)
-    private Float calado_max;
+    @Column(nullable = false)
+    private double calado_max;
 
     @CreationTimestamp
-    @Column(name = "data_create", updatable = false)
+    @Column(name = "data_create", updatable = false, nullable = false)
     private LocalDateTime dataCreate;
 
-
-//    @Column(nullable = false, length = 20)
-//    @Enumerated(EnumType.STRING)
-//    private AceiteStatus status;
-
-    //    CAN BE NULL
-//    @Column( columnDefinition = "ENUM('Y','NE','N') DEFAULT 'N'", nullable = true, length = 20)
-//    @Enumerated(EnumType.STRING)
-    @Column( columnDefinition = "CHAR(50) DEFAULT 'N'", nullable = true, length = 50)
+    @Column(columnDefinition = "CHAR(50) DEFAULT 'N'", length = 50)
     private String status;
 
-//   DELETAR TABELA
-    @Column( columnDefinition = "ENUM('Y','NE','N') DEFAULT 'N'", nullable = true, length = 20)
+    @Column(columnDefinition = "ENUM('Y','NE','N') DEFAULT 'N'")
     @Enumerated(EnumType.STRING)
     private VeriStatus st_ver_vessel;
 
-
-    @Column(length=500)
+    @Column(length = 500)
     private String path;
-
 }

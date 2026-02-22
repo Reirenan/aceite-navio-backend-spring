@@ -1,15 +1,7 @@
-package br.com.treinaweb.twjobs.api.accepts.dtos;
+package br.com.laps.aceite.api.accepts.dtos;
 
-import br.com.treinaweb.twjobs.core.enums.VeriStatus;
-import br.com.treinaweb.twjobs.core.models.Berco;
-import br.com.treinaweb.twjobs.core.validators.VesselImoIsUnique;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.*;
+import lombok.*;
 
 import java.util.List;
 
@@ -19,72 +11,54 @@ import java.util.List;
 @AllArgsConstructor
 public class AcceptRequest {
 
-//   NOT EMPTY SÒ COM STRING
-//   COM NUMEROS È O NOTNULL
+   // IMO é String no entity (7 dígitos)
+   @NotEmpty(message = "IMO não pode estar vazio")
+   @Size(min = 7, max = 7, message = "IMO deve ter exatamente 7 dígitos")
+   private String imo;
 
-//   AJEITAR
-
-//   @VesselImoIsUnique
-   @NotNull(message = "IMO não pode ser nulo")
-//   @Size(min = 7, message = "IMO deve ter no mínimo 7 caracteres")
-   private Long imo;
-
-
-   //CAN BE NULL
+   // Pode ser nulo
    private String obs;
    private String status;
    private String restricoes;
 
-   //CAN BE NULL
-   private List<Berco> bercos;
+   // Enviar apenas IDs é mais correto
+   private List<Long> bercosSelecionados;
 
-// ~~~   PODE SER NULO
-   private List<Long> bercosId;
-
-//   @NotEmpty(message = "data não deve estar vazia")
-//   private String dataAccept;
-//   @NotEmpty(message = "data não deve estar vazia")
-//   private String data_create;
-//   @NotEmpty(message = "data não deve estar vazia")
-//   private String data_update;
-
-   //    Dados navio
+   // ========================
+   // Dados do Navio
+   // ========================
 
    private String mmsi;
 
    private String nome;
 
-   @NotNull(message = "LOA deve ser maior que zero")
-//   @Size(min = 1, max = 10, message = "Calado deve ter no mínimo 1 e no máximo 10 caracteres")
-   private Float loa;
+   @NotNull(message = "LOA não pode ser nulo")
+   @Positive(message = "LOA deve ser maior que zero")
+   private Double loa;
 
-   private Float boca;
+   private Double boca;
 
-   @NotNull(message = "DWT deve ser maior que zero")
-//   @Size(value=1 , message = "Calado deve ter no mínimo 1 e no máximo 10 caracteres")
-   private Float dwt;
+   @NotNull(message = "DWT não pode ser nulo")
+   @Positive(message = "DWT deve ser maior que zero")
+   private Double dwt;
 
-   private Float pontal;
+   private Double pontal;
 
-   private Float ponte_mfold;
+   private Double ponteMfold;
 
-   private Float mfold_quilha;
+   private Double mfoldQuilha;
 
-   @NotEmpty
-   @Size(min = 1, max = 100, message = "CATEGORIA deve ter no mínimo 1 e no máximo 100 caracteres")
+   @NotEmpty(message = "Categoria não pode estar vazia")
+   @Size(min = 1, max = 100, message = "Categoria deve ter no máximo 100 caracteres")
    private String categoria;
 
    private Integer flag;
 
-   @NotNull(message = "calado deve ser maior que zero")
-//   @Size(min = 1, max = 10, message = "Calado deve ter no mínimo 1 e no máximo 10 caracteres")
-   private Float calado_entrada;
+   @NotNull(message = "Calado de entrada não pode ser nulo")
+   @Positive(message = "Calado de entrada deve ser maior que zero")
+   private Double caladoEntrada;
 
-   @NotNull(message = "calado deve ser maior que zero")
-//   @Size(min = 1, max = 10, message = "Calado deve ter no mínimo 1 e no máximo 10 caracteres")
-   private Float calado_saida;
-
-   private List<Long> bercosSelecionados;
-
-    
+   @NotNull(message = "Calado de saída não pode ser nulo")
+   @Positive(message = "Calado de saída deve ser maior que zero")
+   private Double caladoSaida;
 }

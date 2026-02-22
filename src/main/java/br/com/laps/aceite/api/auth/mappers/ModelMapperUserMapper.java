@@ -1,12 +1,11 @@
-package br.com.treinaweb.twjobs.api.auth.mappers;
+package br.com.laps.aceite.api.auth.mappers;
 
+import br.com.laps.aceite.api.auth.dtos.UserRequest;
+import br.com.laps.aceite.api.auth.dtos.UserResponse;
+import br.com.laps.aceite.core.models.User;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
-
-import br.com.treinaweb.twjobs.api.auth.dtos.UserRequest;
-import br.com.treinaweb.twjobs.api.auth.dtos.UserResponse;
-import br.com.treinaweb.twjobs.core.models.User;
-import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor

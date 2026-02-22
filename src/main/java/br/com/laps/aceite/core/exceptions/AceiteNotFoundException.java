@@ -1,6 +1,6 @@
-package br.com.treinaweb.twjobs.core.exceptions;
+package br.com.laps.aceite.core.exceptions;
 
-public class AceiteNotFoundException extends ModelNotFoundException{
+public class AceiteNotFoundException extends ModelNotFoundException {
     public AceiteNotFoundException() {
         super("Aceite not found");
     }

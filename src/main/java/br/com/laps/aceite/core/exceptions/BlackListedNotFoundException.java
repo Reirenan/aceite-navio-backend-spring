@@ -1,6 +1,6 @@
-package br.com.treinaweb.twjobs.core.exceptions;
+package br.com.laps.aceite.core.exceptions;
 
-public class BlackListedNotFoundException extends  ModelNotFoundException{
+public class BlackListedNotFoundException extends ModelNotFoundException {
 
     public BlackListedNotFoundException(){super("BlackListed not found.");}
 

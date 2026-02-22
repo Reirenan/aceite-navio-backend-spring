@@ -1,9 +1,12 @@
-package br.com.laps.aceite.api.controllers;
+package br.com.laps.aceite.api.users.controllers;
 
 import br.com.laps.aceite.api.users.assemblers.UserAssembler;
-import br.com.laps.aceite.api.dtos.UserResponse;
-import br.com.laps.aceite.api.mappers.UserMapper;
+import br.com.laps.aceite.api.users.dtos.UserResponse;
+import br.com.laps.aceite.api.users.mappers.UserMapper;
+import br.com.laps.aceite.core.exceptions.NegocioException;
+import br.com.laps.aceite.core.models.User;
 import br.com.laps.aceite.core.permissions.PortoUsersPermissions;
+import br.com.laps.aceite.core.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.data.web.PageableDefault;

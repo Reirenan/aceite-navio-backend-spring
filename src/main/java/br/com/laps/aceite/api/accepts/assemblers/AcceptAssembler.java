@@ -1,7 +1,8 @@
-package br.com.treinaweb.twjobs.api.accepts.assemblers;//package br.com.treinaweb.twjobs.api.ships.assemblers;
+package br.com.laps.aceite.api.accepts.assemblers;//package br.com.treinaweb.twjobs.api.ships.assemblers;
 
-import br.com.treinaweb.twjobs.api.accepts.controllers.AcceptRestController;
-import br.com.treinaweb.twjobs.api.accepts.dtos.AcceptResponse;
+
+import br.com.laps.aceite.api.accepts.controllers.AcceptRestController;
+import br.com.laps.aceite.api.accepts.dtos.AcceptResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;

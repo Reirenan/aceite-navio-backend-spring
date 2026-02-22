@@ -1,6 +1,6 @@
-package br.com.laps.aceite.api.dtos;
+package br.com.laps.aceite.api.users.dtos;
 
-import br.com.treinaweb.twjobs.core.enums.Role;
+import br.com.laps.aceite.core.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
