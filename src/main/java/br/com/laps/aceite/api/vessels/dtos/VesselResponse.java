@@ -16,6 +16,8 @@ public class VesselResponse {
     private String nome;
     private Float loa;
     private Float calado_max;
+    private Float calado_entrada;
+    private Float calado_saida;
     private Float boca;
     private Float dwt;
     private Float pontal;
@@ -27,5 +29,5 @@ public class VesselResponse {
     private String status;
     private String st_ver_vessel;
     private String path;
-    
+
 }

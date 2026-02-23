@@ -28,6 +28,8 @@ public class AcceptResponse {
 
     private String obs;
     private String restricoes;
+    private Double ponte_mfold;
+    private Double mfold_quilha;
 
     // data_accept no entity é LocalDateTime (dataHoraAccept)
     private LocalDateTime dataHoraAccept;

@@ -50,6 +50,10 @@ public class Accept {
         @Column(nullable = false, length = 9, columnDefinition = "varchar(9) default '0'")
         private String codigo;
 
+        private Double ponte_mfold;
+
+        private Double mfold_quilha;
+
         @Enumerated(EnumType.STRING)
         @Column(nullable = false, length = 20)
         private AceiteStatus status;

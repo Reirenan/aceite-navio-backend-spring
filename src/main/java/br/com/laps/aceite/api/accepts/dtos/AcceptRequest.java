@@ -20,6 +20,8 @@ public class AcceptRequest {
    private String obs;
    private String status;
    private String restricoes;
+   private Double ponte_mfold;
+   private Double mfold_quilha;
 
    // Enviar apenas IDs é mais correto
    private List<Long> bercosSelecionados;
