@@ -168,17 +168,14 @@ public class VesselRestController {
     // return vesselAssembler.toModel(vesselResponse);
     // }
 
-    // @GetMapping("/{id}")
-    // public EntityModel<VesselResponse> findById(@PathVariable Long id) {
-    //
-    // var vessel = vesselRepository.findById(id)
-    // .orElseThrow(VesselNotFoundException::new);
-    //
-    // check_user(vessel);
-    //
-    // var vesselResponse = vesselMapper.toVesselResponse(vessel);
-    // return vesselAssembler.toModel(vesselResponse);
-    // }
+    @GetMapping("/imo/{imo}")
+    public EntityModel<VesselResponse> findByImo(@PathVariable String imo) {
+        var vessel = vesselRepository.findByImo(imo)
+                .orElseThrow(VesselNotFoundException::new);
+
+        var vesselResponse = vesselMapper.toVesselResponse(vessel);
+        return vesselAssembler.toModel(vesselResponse);
+    }
 
     @PortoUsersPermissions.IsAgenteNavio
     @GetMapping("statistics/count")
