@@ -12,7 +12,6 @@ import java.util.List;
 public class AcceptRequest {
 
    private Long vesselId;
-
    // IMO é String no entity (7 dígitos)
    @NotEmpty(message = "IMO não pode estar vazio")
    @Size(min = 7, max = 7, message = "IMO deve ter exatamente 7 dígitos")
