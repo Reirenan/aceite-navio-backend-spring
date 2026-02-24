@@ -1,7 +1,6 @@
 package br.com.laps.aceite.api.accepts.dtos;
 
 import br.com.laps.aceite.core.enums.AceiteStatus;
-import br.com.laps.aceite.core.models.Berco;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -16,27 +15,35 @@ public class AcceptResponse {
 
     private Long id;
 
-    // Referências (igual ao Accept: User e Vessel)
+    // Referências
     private Long userId;
+    private String agenteNome; // Nome do Agente que solicitou
     private Long vesselId;
 
-    // IMO (7 dígitos) no entity é String
+    // Dados do Navio
     private String imo;
+    private String nome;
+    private String mmsi;
+    private Double loa;
+    private Double boca;
+    private Double dwt;
+    private Double pontal;
+    private Double calado_max;
+    private Double caladoEntrada;
+    private Double caladoSaida;
+    private String categoria;
+    private String flag;
 
-    // Enum igual ao entity
+    // Dados do Aceite
     private AceiteStatus status;
-
     private String obs;
     private String restricoes;
     private Double ponte_mfold;
     private Double mfold_quilha;
-
-    // data_accept no entity é LocalDateTime (dataHoraAccept)
     private LocalDateTime dataHoraAccept;
-
-    // Berços
-    private List<Berco> bercos;
-
     private String codigo;
     private String path;
+
+    // Berços (Ids ou objetos simplificados)
+    private List<Long> bercosSelecionados;
 }

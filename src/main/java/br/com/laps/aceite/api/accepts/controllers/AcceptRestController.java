@@ -21,6 +21,7 @@ import br.com.laps.aceite.core.exceptions.NegocioException;
 import br.com.laps.aceite.core.models.Accept;
 import br.com.laps.aceite.core.models.Berco;
 import br.com.laps.aceite.core.models.User;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -97,6 +98,7 @@ public class AcceptRestController {
     // "@PageableDefault(value = 7)" tamanho local para o tamanho da paginação. Deve
     // ser igual ou menor ao valor encontrado no "application.properties"
     @PortoUsersPermissions.IsAgenteNavio
+    @Transactional(readOnly = true)
     @GetMapping
     public CollectionModel<EntityModel<AcceptResponse>> findAll(@PageableDefault(value = 15) Pageable pageable) {
 
@@ -170,8 +172,6 @@ public class AcceptRestController {
 
     @PutMapping("/{id}")
     @PortoUsersPermissions.IsFuncionarioCoace
-    @PortoUsersPermissions.IsAdministrador
-    @PortoUsersPermissions.IsAgenteNavio
     public EntityModel<AcceptResponse> update(
             @Valid @RequestParam(name = "acceptRequestForm", required = true) String acceptRequestForm,
             @PathVariable Long id, @RequestParam(name = "foto", required = false) MultipartFile foto)
@@ -220,7 +220,6 @@ public class AcceptRestController {
 
     @DeleteMapping("/{id}")
     @PortoUsersPermissions.IsFuncionarioCoace
-    @PortoUsersPermissions.IsAdministrador
     public ResponseEntity<?> delete(@PathVariable Long id) {
         var accept = acceptRepository.findById(id)
                 .orElseThrow(AcceptNotFoundException::new);

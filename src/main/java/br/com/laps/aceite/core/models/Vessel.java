@@ -33,7 +33,7 @@ public class Vessel {
     @Column(length = 20)
     private String mmsi;
 
-    @Column(length = 150)
+    @Column(nullable = false, length = 150)
     private String nome;
 
     @Column(nullable = false)

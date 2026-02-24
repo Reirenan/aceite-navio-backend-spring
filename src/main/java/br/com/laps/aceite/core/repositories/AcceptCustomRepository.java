@@ -16,8 +16,9 @@ public class AcceptCustomRepository {
           this.em = em;
      }
 
-     public List<Accept> acceptsCustom(Long id, String imo, String status, String nome, String categoria, LocalDate dataInicio, LocalDate dataFim) {
-          String query = "select A from Accept as A";
+     public List<Accept> acceptsCustom(Long id, String imo, String status, String nome, String categoria,
+               LocalDate dataInicio, LocalDate dataFim) {
+          String query = "select A from Accept as A join A.vessel V";
           String condicao = " where ";
 
           if (id != null) {
@@ -25,7 +26,7 @@ public class AcceptCustomRepository {
                condicao = " and ";
           }
           if (imo != null) {
-               query += condicao + "A.imo = :imo";
+               query += condicao + "V.imo = :imo";
                condicao = " and ";
           }
           if (status != null) {
@@ -33,15 +34,15 @@ public class AcceptCustomRepository {
                condicao = " and ";
           }
           if (nome != null) {
-               query += condicao + "A.nome LIKE :nome";
+               query += condicao + "V.nome LIKE :nome";
                condicao = " and ";
           }
           if (categoria != null) {
-               query += condicao + "A.categoria = :categoria";
+               query += condicao + "V.categoria = :categoria";
                condicao = " and ";
           }
           if (dataInicio != null) {
-               query += condicao + "A.data_create LIKE :data_create";
+               query += condicao + "CAST(A.dataHoraAccept AS string) LIKE :data_accept";
                condicao = " and ";
           }
 
@@ -63,9 +64,8 @@ public class AcceptCustomRepository {
                q.setParameter("categoria", categoria);
           }
           if (dataInicio != null) {
-               q.setParameter("data_create", "%"+dataInicio+"%");
+               q.setParameter("data_accept", "%" + dataInicio + "%");
           }
-
 
           return q.getResultList();
      }

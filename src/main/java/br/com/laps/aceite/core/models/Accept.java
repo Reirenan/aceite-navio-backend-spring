@@ -33,11 +33,7 @@ public class Accept {
         @JoinColumn(name = "vessel_id", nullable = false)
         private Vessel vessel;
 
-        // IMO (7 dígitos)
-        @Column(nullable = false, length = 7, unique = true)
-        private String imo;
-
-        // Data do aceite
+        // Dados do aceite (específicos do processo)
         @Column(name = "data_accept", nullable = false)
         private LocalDateTime dataHoraAccept;
 
@@ -50,13 +46,21 @@ public class Accept {
         @Column(nullable = false, length = 9, columnDefinition = "varchar(9) default '0'")
         private String codigo;
 
-        private Double ponte_mfold;
-
-        private Double mfold_quilha;
-
         @Enumerated(EnumType.STRING)
         @Column(nullable = false, length = 20)
         private AceiteStatus status;
+
+        @Column(name = "calado_entrada")
+        private Double caladoEntrada;
+
+        @Column(name = "calado_saida")
+        private Double caladoSaida;
+
+        @Column(name = "ponte_mfold")
+        private Double ponteMfold;
+
+        @Column(name = "mfold_quilha")
+        private Double mfoldQuilha;
 
         @ManyToMany(fetch = FetchType.LAZY)
         @JoinTable(name = "accept_berco", joinColumns = @JoinColumn(name = "accept_id"), inverseJoinColumns = @JoinColumn(name = "berco_id"))
