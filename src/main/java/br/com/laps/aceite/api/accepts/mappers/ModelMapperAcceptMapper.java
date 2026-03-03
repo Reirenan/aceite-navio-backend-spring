@@ -8,6 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Component
 public class ModelMapperAcceptMapper implements AcceptMapper {
 
@@ -29,6 +32,17 @@ public class ModelMapperAcceptMapper implements AcceptMapper {
             mapper.map(src -> src.getVessel().getNome(), AcceptResponse::setNome);
             // Outros campos como calado_entrada, calado_saida, calado_max, ponte_mfold,
             // mfold_quilha já batem o nome
+
+            // Explicitamente mapeia a lista de berços para DTOs para evitar circularidade
+            mapper.using(ctx -> {
+                List<br.com.laps.aceite.core.models.Berco> source = (List<br.com.laps.aceite.core.models.Berco>) ctx
+                        .getSource();
+                if (source == null)
+                    return null;
+                return source.stream()
+                        .map(b -> modelMapper.map(b, br.com.laps.aceite.api.bercos.dtos.BercoResponse.class))
+                        .collect(java.util.stream.Collectors.toList());
+            }).map(Accept::getBercos, AcceptResponse::setBercos);
         });
     }
 

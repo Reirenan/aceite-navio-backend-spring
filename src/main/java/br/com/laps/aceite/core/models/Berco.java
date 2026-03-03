@@ -15,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class  Berco {
+public class Berco {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
@@ -33,10 +33,6 @@ public class  Berco {
     private Double bocaMax;
     private Double loaMax;
 
-    @ManyToMany(mappedBy = "bercos", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JsonIgnoreProperties("bercos")
-    private List<Accept> accepts;
-
-    @Column( nullable = false, length = 255)
+    @Column(nullable = false, length = 255)
     private String categoria;
 }

@@ -70,7 +70,6 @@ public class Accept {
         @Builder.Default
         @ManyToMany(fetch = FetchType.LAZY)
         @JoinTable(name = "accept_berco", joinColumns = @JoinColumn(name = "accept_id"), inverseJoinColumns = @JoinColumn(name = "berco_id"))
-        @JsonIgnoreProperties("accept")
         private List<Berco> bercos = new ArrayList<>();
 
         private String mmsi;

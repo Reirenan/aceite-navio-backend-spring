@@ -210,8 +210,22 @@ public class CadastroAcceptService {
         private boolean isBercoCompativel(Accept accept, Berco berco) {
                 // Regras: Categoria igual, LOA <= LOA Max, Calados <= Calado Max, DWT <= DWT
                 // Max
-                boolean categoriaCompativel = berco.getCategoria() != null && accept.getCategoria() != null
-                                && berco.getCategoria().trim().equalsIgnoreCase(accept.getCategoria().trim());
+
+                // Normaliza a categoria do aceite (converte "1", "2", "3" para os nomes por
+                // extenso)
+                String categoriaAceite = accept.getCategoria();
+                if (categoriaAceite != null) {
+                        if (categoriaAceite.equals("1"))
+                                categoriaAceite = "Granel Sólido";
+                        else if (categoriaAceite.equals("2"))
+                                categoriaAceite = "Granel Líquido";
+                        else if (categoriaAceite.equals("3"))
+                                categoriaAceite = "Carga Geral";
+                }
+                System.out.println("Categoria do Aceite: " + categoriaAceite);
+                System.out.println("Categoria do Berço: " + berco.getCategoria());
+                boolean categoriaCompativel = berco.getCategoria() != null && categoriaAceite != null
+                                && berco.getCategoria().trim().equalsIgnoreCase(categoriaAceite.trim());
                 boolean loaCompativel = accept.getLoa() != null && berco.getLoaMax() != null
                                 && accept.getLoa() <= berco.getLoaMax();
                 boolean caladoEntradaCompativel = accept.getCalado_entrada() != null && berco.getCaladoMax() != null

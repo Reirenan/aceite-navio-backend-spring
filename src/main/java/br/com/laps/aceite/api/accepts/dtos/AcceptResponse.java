@@ -1,7 +1,7 @@
 package br.com.laps.aceite.api.accepts.dtos;
 
+import br.com.laps.aceite.api.bercos.dtos.BercoResponse;
 import br.com.laps.aceite.core.enums.AceiteStatus;
-import br.com.laps.aceite.core.models.Berco;
 import br.com.laps.aceite.core.models.Vessel;
 import lombok.*;
 
@@ -38,7 +38,7 @@ public class AcceptResponse {
     private LocalDateTime dataHoraAccept;
 
     // Berços
-    private List<Berco> bercos;
+    private List<BercoResponse> bercos;
 
     private Long userId;
     private String agenteNome;
