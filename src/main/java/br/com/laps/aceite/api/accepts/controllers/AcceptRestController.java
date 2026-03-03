@@ -145,22 +145,6 @@ public class AcceptRestController {
         return cadastroAcceptService.salvar(acceptRequestForm, foto, null);
     }
 
-    @PortoUsersPermissions.IsFuncionarioCoace
-    @PatchMapping("/{id}/approve")
-    public EntityModel<AcceptResponse> approve(@PathVariable Long id,
-            @RequestBody(required = false) Map<String, String> body) {
-        String restricoes = (body != null) ? body.get("restricoes") : null;
-        return cadastroAcceptService.aceitar(id, restricoes);
-    }
-
-    @PortoUsersPermissions.IsFuncionarioCoace
-    @PatchMapping("/{id}/reject")
-    public EntityModel<AcceptResponse> reject(@PathVariable Long id,
-            @RequestBody(required = false) Map<String, String> body) {
-        String restricoes = (body != null) ? body.get("restricoes") : null;
-        return cadastroAcceptService.recusar(id, restricoes);
-    }
-
     @PutMapping("/{id}")
     @PortoUsersPermissions.IsFuncionarioCoace
     public EntityModel<AcceptResponse> update(
@@ -182,28 +166,13 @@ public class AcceptRestController {
         accept.setPonte_mfold(acceptRequest.getPonte_mfold());
         accept.setMfold_quilha(acceptRequest.getMfold_quilha());
         accept.setCategoria(acceptRequest.getCategoria());
+        accept.setStatus(acceptRequest.getStatus());
+        accept.setBercos(new ArrayList<Berco>());
+        accept.getBercos().clear();
 
         if (foto != null) {
             accept.setPath(foto.getOriginalFilename());
             fileManagerController.uploadFile(foto);
-        }
-
-        // Lógica de Aceite Automático também no Update
-        List<Berco> bercosAfetados = new ArrayList<>();
-        if (acceptRequest.getBercosSelecionados() == null || acceptRequest.getBercosSelecionados().isEmpty()) {
-            bercosAfetados = cadastroAcceptService.obterBercosCompativeis(accept);
-            accept.setBercos(bercosAfetados);
-            if (!bercosAfetados.isEmpty()) {
-                accept.setStatus(AceiteStatus.ACEITO);
-            } else {
-                accept.setStatus(AceiteStatus.EM_PROCESSAMENTO);
-            }
-        } else {
-            accept.setStatus(AceiteStatus.RESTRICAO_MANUAL);
-            for (Long bercoId : acceptRequest.getBercosSelecionados()) {
-                bercoRepository.findById(bercoId).ifPresent(bercosAfetados::add);
-            }
-            accept.setBercos(bercosAfetados);
         }
 
         accept = acceptRepository.save(accept);

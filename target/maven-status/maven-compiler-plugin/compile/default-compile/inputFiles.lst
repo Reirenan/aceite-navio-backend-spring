@@ -34,7 +34,6 @@ C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\j
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\accepts\assemblers\AcceptAssembler.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\vessels\mappers\ModelMapperVesselMapper.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\services\jwt\JwtService.java
-C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\accepts\controllers\AceiteRestController.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\models\Disco.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\file\FileManagerController.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\bercos\mappers\ModelMapperBercoMapper.java

@@ -33,5 +33,6 @@ public class AcceptRequest {
    private Double mfold_quilha;
 
    private String obs;
+   private AceiteStatus status;
    private List<Long> bercosSelecionados;
 }

@@ -1,6 +1,5 @@
 package br.com.laps.aceite.api.accepts.assemblers;//package br.com.treinaweb.twjobs.api.ships.assemblers;
 
-
 import br.com.laps.aceite.api.accepts.controllers.AcceptRestController;
 import br.com.laps.aceite.api.accepts.dtos.AcceptResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -21,22 +20,21 @@ public class AcceptAssembler implements SimpleRepresentationModelAssembler<Accep
         var id = resource.getContent().getId();
 
         var selfLink = linkTo(methodOn(AcceptRestController.class).findById(id))
-            .withSelfRel()
-            .withType("GET");
+                .withSelfRel()
+                .withType("GET");
 
         Link updateLink = null;
         try {
-            updateLink = linkTo(methodOn(AcceptRestController.class).update(null,id, null))
-                .withRel("update")
-                .withType("PUT");
+            updateLink = linkTo(methodOn(AcceptRestController.class).update(null, id, null))
+                    .withRel("update")
+                    .withType("PUT");
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
 
         var deleteLink = linkTo(methodOn(AcceptRestController.class).delete(id))
-            .withRel("delete")
-            .withType("DELETE");
-
+                .withRel("delete")
+                .withType("DELETE");
 
         resource.add(
                 selfLink,
@@ -46,19 +44,26 @@ public class AcceptAssembler implements SimpleRepresentationModelAssembler<Accep
     @Override
     public void addLinks(CollectionModel<EntityModel<AcceptResponse>> resources) {
         var selfLink = linkTo(methodOn(AcceptRestController.class).findAll(null))
-            .withSelfRel()
-            .withType("GET");
+                .withSelfRel()
+                .withType("GET");
 
         Link createLink = null;
         try {
             createLink = linkTo(methodOn(AcceptRestController.class).create(null, null))
-                .withRel("create")
-                .withType("POST");
+                    .withRel("create")
+                    .withType("POST");
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
 
         resources.add(selfLink, createLink);
+    }
+
+    @Override
+    public EntityModel<AcceptResponse> toModel(AcceptResponse entity) {
+        var resource = EntityModel.of(entity);
+        addLinks(resource);
+        return resource;
     }
 
 }

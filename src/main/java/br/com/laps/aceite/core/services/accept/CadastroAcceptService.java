@@ -160,42 +160,6 @@ public class CadastroAcceptService {
                 return acceptAssembler.toModel(acceptResponse);
         }
 
-        @Transactional
-        public EntityModel<AcceptResponse> aceitar(Long id, String restricoes) {
-                Accept accept = acceptRepository.findById(id)
-                                .orElseThrow(() -> new NegocioException("Aceite não encontrado."));
-
-                accept.setStatus(AceiteStatus.ACEITO);
-                if (restricoes != null) {
-                        accept.setRestricoes(restricoes);
-                }
-                accept = acceptRepository.save(accept);
-
-                emailService.enviarEmailTexto(accept.getUser().getEmail(),
-                                "Aceite Aprovado",
-                                "O aceite para o navio " + accept.getVessel().getNome() + " foi APROVADO.");
-
-                return acceptAssembler.toModel(acceptMapper.toAcceptResponse(accept));
-        }
-
-        @Transactional
-        public EntityModel<AcceptResponse> recusar(Long id, String restricoes) {
-                Accept accept = acceptRepository.findById(id)
-                                .orElseThrow(() -> new NegocioException("Aceite não encontrado."));
-
-                accept.setStatus(AceiteStatus.NEGADO);
-                if (restricoes != null) {
-                        accept.setRestricoes(restricoes);
-                }
-                accept = acceptRepository.save(accept);
-
-                emailService.enviarEmailTexto(accept.getUser().getEmail(),
-                                "Aceite Recusado",
-                                "O aceite para o navio " + accept.getVessel().getNome() + " foi RECUSADO.");
-
-                return acceptAssembler.toModel(acceptMapper.toAcceptResponse(accept));
-        }
-
         public List<Berco> obterBercosCompativeis(Accept accept) {
                 List<Berco> todosBercos = bercoRepository.findAll();
                 List<Berco> compativeis = new ArrayList<>();

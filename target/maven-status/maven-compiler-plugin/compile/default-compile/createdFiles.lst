@@ -79,7 +79,6 @@ br\com\laps\aceite\api\bercos\dtos\BercoRequest.class
 br\com\laps\aceite\core\exceptions\BlackListedNotFoundException.class
 br\com\laps\aceite\api\auth\dtos\UserRequest.class
 br\com\laps\aceite\config\RoleHierarchyConfig.class
-br\com\laps\aceite\api\accepts\controllers\AceiteRestController.class
 br\com\laps\aceite\core\exceptions\AcceptNotFoundException.class
 br\com\laps\aceite\api\users\dtos\UserResponse$UserResponseBuilder.class
 br\com\laps\aceite\core\models\Berco$BercoBuilder.class
