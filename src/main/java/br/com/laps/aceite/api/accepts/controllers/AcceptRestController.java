@@ -8,8 +8,10 @@ import br.com.laps.aceite.core.enums.AceiteStatus;
 import br.com.laps.aceite.core.permissions.PortoUsersPermissions;
 import br.com.laps.aceite.core.repositories.AcceptCustomRepository;
 import br.com.laps.aceite.core.repositories.AcceptRepository;
+import br.com.laps.aceite.core.repositories.BercoRepository;
 import br.com.laps.aceite.core.repositories.UserRepository;
 import br.com.laps.aceite.core.repositories.VesselRepository;
+import java.util.ArrayList;
 import br.com.laps.aceite.core.services.accept.CadastroAcceptService;
 import br.com.laps.aceite.core.services.auth.SecurityService;
 import br.com.laps.aceite.core.services.email.EmailService;
@@ -60,6 +62,7 @@ public class AcceptRestController {
     private final PagedResourcesAssembler<AcceptResponse> pagedResourcesAssembler;
 
     private final CadastroAcceptService cadastroAcceptService;
+    private final BercoRepository bercoRepository;
 
     private final AcceptCustomRepository acceptCustomRepository;
     private final VesselRepository vesselRepository;
@@ -144,34 +147,22 @@ public class AcceptRestController {
 
     @PortoUsersPermissions.IsFuncionarioCoace
     @PatchMapping("/{id}/approve")
-    public EntityModel<AcceptResponse> approve(@PathVariable Long id, @RequestBody Map<String, String> body) {
-        String restricoes = body.get("restricoes");
-        Accept accept = acceptRepository.findById(id).orElseThrow(AcceptNotFoundException::new);
-        accept.setStatus(AceiteStatus.ACEITO);
-        accept.setRestricoes(restricoes);
-        accept.setDataHoraAccept(java.time.LocalDateTime.now());
-        // For now, reuse update logic or just save. The CadastroAcceptService should
-        // probably handle notifications.
-        accept = acceptRepository.save(accept);
-        return acceptAssembler.toModel(acceptMapper.toAcceptResponse(accept));
+    public EntityModel<AcceptResponse> approve(@PathVariable Long id,
+            @RequestBody(required = false) Map<String, String> body) {
+        String restricoes = (body != null) ? body.get("restricoes") : null;
+        return cadastroAcceptService.aceitar(id, restricoes);
     }
 
     @PortoUsersPermissions.IsFuncionarioCoace
     @PatchMapping("/{id}/reject")
-    public EntityModel<AcceptResponse> reject(@PathVariable Long id, @RequestBody Map<String, String> body) {
-        String restricoes = body.get("restricoes");
-        Accept accept = acceptRepository.findById(id).orElseThrow(AcceptNotFoundException::new);
-        accept.setStatus(AceiteStatus.NEGADO);
-        accept.setRestricoes(restricoes);
-        accept.setDataHoraAccept(java.time.LocalDateTime.now());
-        accept = acceptRepository.save(accept);
-        return acceptAssembler.toModel(acceptMapper.toAcceptResponse(accept));
+    public EntityModel<AcceptResponse> reject(@PathVariable Long id,
+            @RequestBody(required = false) Map<String, String> body) {
+        String restricoes = (body != null) ? body.get("restricoes") : null;
+        return cadastroAcceptService.recusar(id, restricoes);
     }
 
     @PutMapping("/{id}")
     @PortoUsersPermissions.IsFuncionarioCoace
-    @PortoUsersPermissions.IsAdministrador
-    @PortoUsersPermissions.IsAgenteNavio
     public EntityModel<AcceptResponse> update(
             @Valid @RequestParam(name = "acceptRequestForm", required = true) String acceptRequestForm,
             @PathVariable Long id, @RequestParam(name = "foto", required = false) MultipartFile foto)
@@ -179,15 +170,41 @@ public class AcceptRestController {
 
         AcceptRequest acceptRequest = mapper.readValue(acceptRequestForm, AcceptRequest.class);
         Accept accept = acceptRepository.findById(id).orElseThrow(AcceptNotFoundException::new);
-        var acceptData = acceptMapper.toAccept(acceptRequest);
+
+        // Mapeamento manual para campos snake_case
+        accept.setLoa(acceptRequest.getLoa());
+        accept.setBoca(acceptRequest.getBoca());
+        accept.setDwt(acceptRequest.getDwt());
+        accept.setPontal(acceptRequest.getPontal());
+        accept.setCalado_entrada(acceptRequest.getCalado_entrada());
+        accept.setCalado_saida(acceptRequest.getCalado_saida());
+        accept.setCalado_max(acceptRequest.getCalado_max());
+        accept.setPonte_mfold(acceptRequest.getPonte_mfold());
+        accept.setMfold_quilha(acceptRequest.getMfold_quilha());
+        accept.setCategoria(acceptRequest.getCategoria());
 
         if (foto != null) {
             accept.setPath(foto.getOriginalFilename());
             fileManagerController.uploadFile(foto);
         }
 
-        BeanUtils.copyProperties(acceptData, accept, "id", "dataHoraAccept", "data_create", "time_accept",
-                "time_create", "vessel", "user", "bercos", "codigo");
+        // Lógica de Aceite Automático também no Update
+        List<Berco> bercosAfetados = new ArrayList<>();
+        if (acceptRequest.getBercosSelecionados() == null || acceptRequest.getBercosSelecionados().isEmpty()) {
+            bercosAfetados = cadastroAcceptService.obterBercosCompativeis(accept);
+            accept.setBercos(bercosAfetados);
+            if (!bercosAfetados.isEmpty()) {
+                accept.setStatus(AceiteStatus.ACEITO);
+            } else {
+                accept.setStatus(AceiteStatus.EM_PROCESSAMENTO);
+            }
+        } else {
+            accept.setStatus(AceiteStatus.RESTRICAO_MANUAL);
+            for (Long bercoId : acceptRequest.getBercosSelecionados()) {
+                bercoRepository.findById(bercoId).ifPresent(bercosAfetados::add);
+            }
+            accept.setBercos(bercosAfetados);
+        }
 
         accept = acceptRepository.save(accept);
         var acceptResponse = acceptMapper.toAcceptResponse(accept);
@@ -220,7 +237,6 @@ public class AcceptRestController {
 
     @DeleteMapping("/{id}")
     @PortoUsersPermissions.IsFuncionarioCoace
-    @PortoUsersPermissions.IsAdministrador
     public ResponseEntity<?> delete(@PathVariable Long id) {
         var accept = acceptRepository.findById(id)
                 .orElseThrow(AcceptNotFoundException::new);

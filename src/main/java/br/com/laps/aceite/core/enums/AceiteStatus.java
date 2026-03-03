@@ -5,4 +5,6 @@ public enum AceiteStatus {
     NEGADO,
     EM_PROCESSAMENTO,
     ACEITE_COM_RESTRICAO,
+    BLOQUEADO,
+    RESTRICAO_MANUAL,
 }
