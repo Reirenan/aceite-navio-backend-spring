@@ -72,7 +72,7 @@ public class VesselRestController {
     @Autowired
     private final Disco disco;
 
-    @PortoUsersPermissions.IsAgenteNavio
+    @PortoUsersPermissions.IsFuncionarioCoace
     @GetMapping("/sem-paginacao")
     public CollectionModel<EntityModel<VesselResponse>> findAllSemPaginacao() {
         List<VesselResponse> lista = vesselRepository.findAll(Sort.by(Sort.Direction.DESC, "id")).stream()
@@ -403,7 +403,7 @@ public class VesselRestController {
      * }
      */
 
-    @PortoUsersPermissions.IsAgenteNavio
+    @PortoUsersPermissions.IsFuncionarioCoace
     @PutMapping("/{id}")
     public EntityModel<VesselResponse> update(
             // @RequestBody @Valid VesselRequest vesselRequest,

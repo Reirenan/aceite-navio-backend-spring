@@ -3,6 +3,7 @@ package br.com.laps.aceite.api.accepts.dtos;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import br.com.laps.aceite.core.enums.AceiteStatus;
 import java.util.List;
 
 @Data

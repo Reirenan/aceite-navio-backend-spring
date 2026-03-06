@@ -8,11 +8,13 @@ br\com\laps\aceite\api\users\mappers\ModelMapperUserCRUDMapper.class
 br\com\laps\aceite\core\exceptions\AceiteNotFoundException.class
 br\com\laps\aceite\core\permissions\PortoUsersPermissions$IsAgenteNavio.class
 br\com\laps\aceite\core\repositories\BercoRepository.class
+br\com\laps\aceite\api\vettings\dtos\VettingRequest$VettingRequestBuilder.class
 br\com\laps\aceite\api\accepts\controllers\AcceptRestController.class
 br\com\laps\aceite\api\accepts\dtos\AcceptResponse$AcceptResponseBuilder.class
 br\com\laps\aceite\api\accepts\dtos\AcceptResponse.class
 br\com\laps\aceite\api\auth\dtos\LoginRequest$LoginRequestBuilder.class
 br\com\laps\aceite\api\vessels\controllers\VesselDataRestController.class
+br\com\laps\aceite\api\vettings\dtos\VettingResponse.class
 br\com\laps\aceite\config\PasswordEnconderConfig.class
 br\com\laps\aceite\api\vessels\dtos\VesselResponse$VesselResponseBuilder.class
 br\com\laps\aceite\core\enums\StatusNoSistema.class
@@ -28,6 +30,7 @@ br\com\laps\aceite\api\auth\dtos\TokenResponse$TokenResponseBuilder.class
 br\com\laps\aceite\api\accepts\assemblers\AcceptAssembler.class
 br\com\laps\aceite\core\services\http\HttpService.class
 br\com\laps\aceite\api\auth\dtos\LoginRequest.class
+br\com\laps\aceite\api\vettings\controllers\VettingRestController.class
 br\com\laps\aceite\api\file\FileStorageService.class
 br\com\laps\aceite\core\repositories\AcceptRepository.class
 br\com\laps\aceite\api\auth\dtos\RefreshRequest.class
@@ -57,9 +60,12 @@ br\com\laps\aceite\core\exceptions\SkillNotFoundException.class
 br\com\laps\aceite\api\accepts\mappers\ModelMapperAcceptMapper.class
 br\com\laps\aceite\api\common\handlers\TokenAuthenticationEntryPoint.class
 br\com\laps\aceite\core\models\Vetting$VettingBuilder.class
+br\com\laps\aceite\core\exceptions\VettingNotFoundException.class
 br\com\laps\aceite\api\vessels\dtos\VesselRequest$VesselRequestBuilder.class
 br\com\laps\aceite\api\common\filters\AccessTokenRequestFilter.class
 br\com\laps\aceite\core\services\auth\AuthenticationService.class
+br\com\laps\aceite\api\vettings\dtos\VettingRequest.class
+br\com\laps\aceite\api\vettings\mappers\ModelMapperVettingMapper.class
 br\com\laps\aceite\api\auth\controllers\AuthRestController.class
 br\com\laps\aceite\config\JwtConfigProperties.class
 br\com\laps\aceite\api\exceptionhandler\ApiExceptionHanler.class
@@ -73,6 +79,7 @@ br\com\laps\aceite\core\permissions\PortoUsersPermissions.class
 br\com\laps\aceite\core\services\accept\CadastroAcceptService.class
 br\com\laps\aceite\api\auth\mappers\ModelMapperUserMapper.class
 br\com\laps\aceite\api\bercos\mappers\ModelMapperBercoMapper.class
+br\com\laps\aceite\api\vettings\dtos\VettingResponse$VettingResponseBuilder.class
 br\com\laps\aceite\api\common\dtos\ErrorResponse$ErrorResponseBuilder.class
 br\com\laps\aceite\api\auth\dtos\UserResponse.class
 br\com\laps\aceite\api\bercos\dtos\BercoRequest.class
@@ -96,6 +103,7 @@ br\com\laps\aceite\core\repositories\UserRepository.class
 br\com\laps\aceite\core\repositories\VesselCustomRepository.class
 br\com\laps\aceite\api\bercos\assemblers\BercosAssembler.class
 br\com\laps\aceite\core\exceptions\VesselNotFoundException.class
+br\com\laps\aceite\api\vettings\mappers\VettingMapper.class
 br\com\laps\aceite\api\bercos\dtos\BercoRequest$BercoRequestBuilder.class
 br\com\laps\aceite\core\services\email\EmailService.class
 br\com\laps\aceite\api\auth\dtos\RefreshRequest$RefreshRequestBuilder.class
@@ -103,6 +111,7 @@ br\com\laps\aceite\core\repositories\VesselRepository.class
 br\com\laps\aceite\config\AsyncConfig.class
 br\com\laps\aceite\api\common\handlers\TokenAccessDeniedHandler.class
 br\com\laps\aceite\core\exceptions\ModelNotFoundException.class
+br\com\laps\aceite\core\services\vetting\CadastroVettingService.class
 br\com\laps\aceite\api\vessels\controllers\VesselRestController.class
 br\com\laps\aceite\core\permissions\PortoUsersPermissions$IsFuncionarioCoace.class
 br\com\laps\aceite\api\auth\dtos\TokenResponse.class
@@ -112,4 +121,5 @@ br\com\laps\aceite\core\permissions\PortoUsersPermissions$IsAdministrador.class
 br\com\laps\aceite\api\users\controllers\UsersCRUDRestController.class
 br\com\laps\aceite\config\ModelMapperConfig.class
 br\com\laps\aceite\api\vessels\mappers\VesselMapper.class
+br\com\laps\aceite\api\vettings\assembler\VettingAssembler.class
 br\com\laps\aceite\core\exceptions\JobNotFoundException.class
