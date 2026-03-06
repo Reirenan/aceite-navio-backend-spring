@@ -7,12 +7,12 @@ import br.com.laps.aceite.api.accepts.mappers.AcceptMapper;
 import br.com.laps.aceite.api.file.FileManagerController;
 import br.com.laps.aceite.core.enums.AceiteStatus;
 import br.com.laps.aceite.core.exceptions.NegocioException;
-import br.com.laps.aceite.core.exceptions.VesselNotFoundException;
 import br.com.laps.aceite.core.models.*;
 import br.com.laps.aceite.core.repositories.*;
 import br.com.laps.aceite.core.services.audit.Auditable;
 import br.com.laps.aceite.core.services.auth.SecurityService;
 import br.com.laps.aceite.core.services.email.EmailService;
+import br.com.laps.aceite.core.services.navio.CadastroVesselService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -42,6 +42,7 @@ public class CadastroAcceptService {
         private final VesselRepository vesselRepository;
         private final BercoRepository bercoRepository;
         private final VettingRepository vettingRepository;
+        private final CadastroVesselService cadastroVesselService;
 
         private final FileManagerController fileManagerController;
 
@@ -74,9 +75,44 @@ public class CadastroAcceptService {
                 // 3) Usuário logado
                 User user = securityService.getCurrentUser();
 
-                // 4) Vessel por IMO (Verificar existência)
+                // 4) Vessel por IMO (Verificar existência ou criar)
                 Vessel vessel = vesselRepository.findByImo(acceptRequest.getImo())
-                                .orElseThrow(() -> new NegocioException("Navio não encontrado com o IMO informado."));
+                                .orElseGet(() -> {
+                                        Vessel newVessel = Vessel.builder()
+                                                        .imo(acceptRequest.getImo())
+                                                        .mmsi(acceptRequest.getMmsi())
+                                                        .nome(acceptRequest.getNome())
+                                                        .loa(acceptRequest.getLoa() != null ? acceptRequest.getLoa()
+                                                                        : 0.0)
+                                                        .boca(acceptRequest.getBoca() != null ? acceptRequest.getBoca()
+                                                                        : 0.0)
+                                                        .dwt(acceptRequest.getDwt() != null ? acceptRequest.getDwt()
+                                                                        : 0.0)
+                                                        .pontal(acceptRequest.getPontal() != null
+                                                                        ? acceptRequest.getPontal()
+                                                                        : 0.0)
+                                                        .ponte_mfold(acceptRequest.getPonte_mfold() != null
+                                                                        ? acceptRequest.getPonte_mfold()
+                                                                        : 0.0)
+                                                        .mfold_quilha(acceptRequest.getMfold_quilha() != null
+                                                                        ? acceptRequest.getMfold_quilha()
+                                                                        : 0.0)
+                                                        .categoria(acceptRequest.getCategoria())
+                                                        .flag(acceptRequest.getFlag())
+                                                        .calado_entrada(acceptRequest.getCalado_entrada() != null
+                                                                        ? acceptRequest.getCalado_entrada()
+                                                                        : 0.0)
+                                                        .calado_saida(acceptRequest.getCalado_saida() != null
+                                                                        ? acceptRequest.getCalado_saida()
+                                                                        : 0.0)
+                                                        .calado_max(acceptRequest.getCalado_max() != null
+                                                                        ? acceptRequest.getCalado_max()
+                                                                        : 0.0)
+                                                        .user(user)
+                                                        .obs(acceptRequest.getObs())
+                                                        .build();
+                                        return cadastroVesselService.salvar(newVessel);
+                                });
 
                 // 5) Mapeia DTO -> Entity e dados básicos
                 Accept accept = acceptMapper.toAccept(acceptRequest);
