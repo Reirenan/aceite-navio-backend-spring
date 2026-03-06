@@ -38,12 +38,14 @@ public interface AcceptRepository extends JpaRepository<Accept, Long> {
     @Query("SELECT a.status, COUNT(a) FROM Accept a GROUP BY a.status")
     List<Object[]> countByStatus();
 
+    // Contagem por status específico
+    long countByStatus(AceiteStatus status);
+
     // Filtro por status
     Page<Accept> findAllByStatus(AceiteStatus status, Pageable pageable);
 
     // Intervalo de data
     List<Accept> findAllByDataHoraAcceptBetween(
             java.time.LocalDateTime start,
-            java.time.LocalDateTime end
-    );
+            java.time.LocalDateTime end);
 }

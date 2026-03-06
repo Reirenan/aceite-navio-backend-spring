@@ -42,6 +42,7 @@ C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\j
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\bercos\dtos\BercoResponse.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\enums\StatusNoSistema.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\repositories\VesselRepository.java
+C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\dashboard\controllers\DashboardRestController.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\services\auth\SecurityService.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\config\SecurityConfig.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\file\FileStorageService.java
@@ -52,6 +53,7 @@ C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\j
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\vettings\mappers\VettingMapper.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\enums\OperationType.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\enums\AceiteStatus.java
+C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\services\DashboardService.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\accepts\controllers\AcceptRestController.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\services\jwt\JjwtJwtService.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\auth\dtos\TokenResponse.java
@@ -70,6 +72,7 @@ C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\j
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\users\mappers\ModelMapperUserCRUDMapper.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\vessels\mappers\ModelMapperVesselMapper.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\services\jwt\JwtService.java
+C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\dashboard\dtos\DashboardSummaryDTO.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\models\AuditLog.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\models\Disco.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\bercos\mappers\ModelMapperBercoMapper.java

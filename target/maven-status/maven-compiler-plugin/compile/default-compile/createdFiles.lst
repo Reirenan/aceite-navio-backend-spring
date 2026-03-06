@@ -12,6 +12,7 @@ br\com\laps\aceite\core\repositories\BercoRepository.class
 br\com\laps\aceite\api\vettings\dtos\VettingRequest$VettingRequestBuilder.class
 br\com\laps\aceite\api\accepts\controllers\AcceptRestController.class
 br\com\laps\aceite\api\accepts\dtos\AcceptResponse$AcceptResponseBuilder.class
+br\com\laps\aceite\core\services\DashboardService.class
 br\com\laps\aceite\core\models\AuditLog.class
 br\com\laps\aceite\api\accepts\dtos\AcceptResponse.class
 br\com\laps\aceite\api\auth\dtos\LoginRequest$LoginRequestBuilder.class
@@ -19,6 +20,7 @@ br\com\laps\aceite\core\services\audit\AuditAspect.class
 br\com\laps\aceite\api\vessels\controllers\VesselDataRestController.class
 br\com\laps\aceite\api\vettings\dtos\VettingResponse.class
 br\com\laps\aceite\core\services\berco\CadastroBercoService.class
+br\com\laps\aceite\api\dashboard\dtos\DashboardSummaryDTO$DashboardSummaryDTOBuilder.class
 br\com\laps\aceite\config\PasswordEnconderConfig.class
 br\com\laps\aceite\api\vessels\dtos\VesselResponse$VesselResponseBuilder.class
 br\com\laps\aceite\core\enums\StatusNoSistema.class
@@ -72,6 +74,7 @@ br\com\laps\aceite\core\services\auth\AuthenticationService.class
 br\com\laps\aceite\api\vettings\dtos\VettingRequest.class
 br\com\laps\aceite\api\vettings\mappers\ModelMapperVettingMapper.class
 br\com\laps\aceite\api\auth\controllers\AuthRestController.class
+br\com\laps\aceite\api\dashboard\controllers\DashboardRestController.class
 br\com\laps\aceite\config\JwtConfigProperties.class
 br\com\laps\aceite\api\exceptionhandler\ApiExceptionHanler.class
 br\com\laps\aceite\core\enums\VeriStatus.class
@@ -110,6 +113,7 @@ br\com\laps\aceite\core\models\Accept.class
 br\com\laps\aceite\core\repositories\UserRepository.class
 br\com\laps\aceite\api\audit\mappers\AuditLogMapper.class
 br\com\laps\aceite\core\repositories\VesselCustomRepository.class
+br\com\laps\aceite\api\dashboard\dtos\DashboardSummaryDTO.class
 br\com\laps\aceite\api\bercos\assemblers\BercosAssembler.class
 br\com\laps\aceite\core\exceptions\VesselNotFoundException.class
 br\com\laps\aceite\api\vettings\mappers\VettingMapper.class
