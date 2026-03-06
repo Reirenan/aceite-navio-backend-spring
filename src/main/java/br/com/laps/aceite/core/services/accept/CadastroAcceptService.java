@@ -10,6 +10,7 @@ import br.com.laps.aceite.core.exceptions.NegocioException;
 import br.com.laps.aceite.core.exceptions.VesselNotFoundException;
 import br.com.laps.aceite.core.models.*;
 import br.com.laps.aceite.core.repositories.*;
+import br.com.laps.aceite.core.services.audit.Auditable;
 import br.com.laps.aceite.core.services.auth.SecurityService;
 import br.com.laps.aceite.core.services.email.EmailService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -52,6 +53,7 @@ public class CadastroAcceptService {
         @Autowired
         private EmailService emailService;
 
+        @Auditable(entity = "Accept", clazz = Accept.class)
         @Transactional
         public EntityModel<AcceptResponse> salvar(String acceptRequestForm, MultipartFile foto, String destinatario)
                         throws JsonProcessingException {

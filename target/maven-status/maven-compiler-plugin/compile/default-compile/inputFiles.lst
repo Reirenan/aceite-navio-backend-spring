@@ -1,4 +1,5 @@
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\auth\mappers\ModelMapperUserMapper.java
+C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\audit\mappers\AuditLogMapper.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\common\handlers\TokenAccessDeniedHandler.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\vessels\assembler\VesselAssembler.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\config\JwtConfigProperties.java
@@ -12,6 +13,7 @@ C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\j
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\config\RoleHierarchyConfig.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\users\assemblers\UserAssembler.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\exceptions\JobNotFoundException.java
+C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\services\audit\AuditService.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\accepts\dtos\AcceptResponse.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\exceptions\AcceptNotFoundException.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\users\dtos\UserRequest.java
@@ -19,7 +21,9 @@ C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\j
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\exceptionhandler\ApiExceptionHanler.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\vettings\dtos\VettingRequest.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\vettings\assembler\VettingAssembler.java
+C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\repositories\AuditLogRepository.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\accepts\assemblers\AcceptAssembler.java
+C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\services\audit\AuditAspect.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\vettings\mappers\ModelMapperVettingMapper.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\file\FileManagerController.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\vessels\controllers\VesselRestController.java
@@ -31,6 +35,7 @@ C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\j
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\exceptions\BlackListedNotFoundException.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\exceptions\NegocioException.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\bercos\assemblers\BercosAssembler.java
+C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\services\audit\Auditable.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\accepts\mappers\ModelMapperAcceptMapper.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\auth\dtos\UserRequest.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\common\handlers\ApiExceptionHandler.java
@@ -42,7 +47,10 @@ C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\j
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\file\FileStorageService.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\auth\controllers\AuthRestController.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\auth\mappers\UserMapper.java
+C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\services\berco\CadastroBercoService.java
+C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\audit\controllers\AuditRestController.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\vettings\mappers\VettingMapper.java
+C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\enums\OperationType.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\enums\AceiteStatus.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\accepts\controllers\AcceptRestController.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\services\jwt\JjwtJwtService.java
@@ -62,6 +70,7 @@ C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\j
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\users\mappers\ModelMapperUserCRUDMapper.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\vessels\mappers\ModelMapperVesselMapper.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\services\jwt\JwtService.java
+C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\models\AuditLog.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\models\Disco.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\bercos\mappers\ModelMapperBercoMapper.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\users\mappers\UserMapper.java
@@ -77,6 +86,7 @@ C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\j
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\bercos\controllers\BercosRestController.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\core\exceptions\ModelNotFoundException.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\common\filters\AccessTokenRequestFilter.java
+C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\audit\dtos\AuditLogResponse.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\common\dtos\ErrorResponse.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\auth\dtos\UserResponse.java
 C:\Users\User\Documents\GitHub\porto-2026\aceite-navio-backend-spring\src\main\java\br\com\laps\aceite\api\bercos\dtos\BercoRequest.java

@@ -1,3 +1,4 @@
+br\com\laps\aceite\core\repositories\AuditLogRepository.class
 br\com\laps\aceite\api\auth\mappers\UserMapper.class
 br\com\laps\aceite\api\bercos\dtos\BercoResponse.class
 br\com\laps\aceite\core\models\Berco.class
@@ -11,10 +12,13 @@ br\com\laps\aceite\core\repositories\BercoRepository.class
 br\com\laps\aceite\api\vettings\dtos\VettingRequest$VettingRequestBuilder.class
 br\com\laps\aceite\api\accepts\controllers\AcceptRestController.class
 br\com\laps\aceite\api\accepts\dtos\AcceptResponse$AcceptResponseBuilder.class
+br\com\laps\aceite\core\models\AuditLog.class
 br\com\laps\aceite\api\accepts\dtos\AcceptResponse.class
 br\com\laps\aceite\api\auth\dtos\LoginRequest$LoginRequestBuilder.class
+br\com\laps\aceite\core\services\audit\AuditAspect.class
 br\com\laps\aceite\api\vessels\controllers\VesselDataRestController.class
 br\com\laps\aceite\api\vettings\dtos\VettingResponse.class
+br\com\laps\aceite\core\services\berco\CadastroBercoService.class
 br\com\laps\aceite\config\PasswordEnconderConfig.class
 br\com\laps\aceite\api\vessels\dtos\VesselResponse$VesselResponseBuilder.class
 br\com\laps\aceite\core\enums\StatusNoSistema.class
@@ -43,6 +47,7 @@ br\com\laps\aceite\core\services\http\HttpServiceImpl$1.class
 br\com\laps\aceite\core\services\auth\SecurityService.class
 br\com\laps\aceite\api\vessels\dtos\VesselResponse.class
 br\com\laps\aceite\api\common\dtos\ErrorResponse.class
+br\com\laps\aceite\core\enums\OperationType.class
 br\com\laps\aceite\api\bercos\mappers\BercoMapper.class
 br\com\laps\aceite\api\accepts\dtos\AcceptRequest.class
 br\com\laps\aceite\api\vessels\mappers\ModelMapperVesselMapper.class
@@ -90,16 +95,20 @@ br\com\laps\aceite\core\exceptions\AcceptNotFoundException.class
 br\com\laps\aceite\api\users\dtos\UserResponse$UserResponseBuilder.class
 br\com\laps\aceite\core\models\Berco$BercoBuilder.class
 br\com\laps\aceite\core\models\Vessel$VesselBuilder.class
+br\com\laps\aceite\core\services\audit\AuditService.class
 br\com\laps\aceite\api\common\dtos\ValidationErrorResponse.class
 br\com\laps\aceite\api\accepts\dtos\AcceptRequest$AcceptRequestBuilder.class
 br\com\laps\aceite\api\accepts\mappers\AcceptMapper.class
 br\com\laps\aceite\core\services\auth\AuthenticatedUser.class
 br\com\laps\aceite\api\auth\dtos\UserRequest$UserRequestBuilder.class
+br\com\laps\aceite\api\audit\dtos\AuditLogResponse.class
 br\com\laps\aceite\core\models\User$UserBuilder.class
 br\com\laps\aceite\core\models\Vetting.class
+br\com\laps\aceite\core\services\audit\Auditable.class
 br\com\laps\aceite\api\vessels\assembler\VesselAssembler.class
 br\com\laps\aceite\core\models\Accept.class
 br\com\laps\aceite\core\repositories\UserRepository.class
+br\com\laps\aceite\api\audit\mappers\AuditLogMapper.class
 br\com\laps\aceite\core\repositories\VesselCustomRepository.class
 br\com\laps\aceite\api\bercos\assemblers\BercosAssembler.class
 br\com\laps\aceite\core\exceptions\VesselNotFoundException.class
@@ -109,6 +118,7 @@ br\com\laps\aceite\core\services\email\EmailService.class
 br\com\laps\aceite\api\auth\dtos\RefreshRequest$RefreshRequestBuilder.class
 br\com\laps\aceite\core\repositories\VesselRepository.class
 br\com\laps\aceite\config\AsyncConfig.class
+br\com\laps\aceite\api\audit\controllers\AuditRestController.class
 br\com\laps\aceite\api\common\handlers\TokenAccessDeniedHandler.class
 br\com\laps\aceite\core\exceptions\ModelNotFoundException.class
 br\com\laps\aceite\core\services\vetting\CadastroVettingService.class

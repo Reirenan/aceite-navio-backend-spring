@@ -319,7 +319,7 @@ public class VesselRestController {
 
         String destinatario = destinatarioUser.getEmail();
 
-        vessel = vesselRepository.save(vessel);
+        vessel = cadastroVesselService.salvar(vessel);
         var vesselResponse = vesselMapper.toVesselResponse(vessel);
         String msg = "DADOS DO NAVIO\n\n" +
 
@@ -431,7 +431,7 @@ public class VesselRestController {
         BeanUtils.copyProperties(vesselData, vessel, "id", "user", "dataCreate", "status", "st_ver_vessel");
 
         // CORREÇÃO: Salvar o objeto 'vessel' atualizado, não o DTO 'vesselData'
-        vessel = vesselRepository.save(vessel);
+        vessel = cadastroVesselService.salvar(vessel);
 
         // vesselData.setId(id);
         // vessel = vesselRepository.save(vessel);
@@ -445,10 +445,7 @@ public class VesselRestController {
     @DeleteMapping("/{id}")
     @PortoUsersPermissions.IsFuncionarioCoace
     public ResponseEntity<?> delete(@PathVariable Long id) {
-        var vessel = vesselRepository.findById(id)
-                .orElseThrow(VesselNotFoundException::new);
-
-        vesselRepository.delete(vessel);
+        cadastroVesselService.excluir(id);
         return ResponseEntity.noContent().build();
     }
 

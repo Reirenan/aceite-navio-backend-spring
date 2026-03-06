@@ -12,6 +12,7 @@ import br.com.laps.aceite.core.repositories.BercoCustomRepository;
 import br.com.laps.aceite.core.repositories.BercoRepository;
 import br.com.laps.aceite.core.repositories.VesselRepository;
 import br.com.laps.aceite.core.services.auth.SecurityService;
+import br.com.laps.aceite.core.services.berco.CadastroBercoService;
 import br.com.laps.aceite.core.services.navio.CadastroVesselService;
 
 import jakarta.validation.Valid;
@@ -40,6 +41,7 @@ public class BercosRestController {
     private final BercoMapper bercoMapper;
     private final CadastroVesselService cadastroVesselService;
     private final BercoRepository bercoRepository;
+    private final CadastroBercoService cadastroBercoService;
 
     private final SecurityService securityService;
     private final PagedResourcesAssembler<BercoResponse> pagedResourcesAssembler;
@@ -94,7 +96,7 @@ public class BercosRestController {
     public EntityModel<BercoResponse> create(@Valid @RequestBody BercoRequest bercoRequest) {
         var berco = bercoMapper.toBerco(bercoRequest);
 
-        berco = bercoRepository.save(berco);
+        berco = cadastroBercoService.salvar(berco);
 
         var bercoResponse = bercoMapper.toBercoResponse(berco);
         return bercoAssembler.toModel(bercoResponse);
@@ -114,7 +116,7 @@ public class BercosRestController {
         // da entidade gerenciada
         BeanUtils.copyProperties(bercoData, berco, "id");
 
-        berco = bercoRepository.save(berco);
+        berco = cadastroBercoService.salvar(berco);
 
         var bercoResponse = bercoMapper.toBercoResponse(berco);
         return bercoAssembler.toModel(bercoResponse);
@@ -123,9 +125,7 @@ public class BercosRestController {
     @DeleteMapping("/{id}")
     @PortoUsersPermissions.IsFuncionarioCoace
     public ResponseEntity<?> delete(@PathVariable Long id) {
-        var berco = bercoRepository.findById(id)
-                .orElseThrow(BercoNotFoundException::new);
-        bercoRepository.delete(berco);
+        cadastroBercoService.excluir(id);
 
         return ResponseEntity.noContent().build();
     }
