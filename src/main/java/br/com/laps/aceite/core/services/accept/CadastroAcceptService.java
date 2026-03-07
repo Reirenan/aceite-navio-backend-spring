@@ -54,9 +54,17 @@ public class CadastroAcceptService {
         @Autowired
         private EmailService emailService;
 
-        @Auditable(entity = "Accept", clazz = Accept.class)
         @Transactional
         public EntityModel<AcceptResponse> salvar(String acceptRequestForm, MultipartFile foto, String destinatario)
+                        throws JsonProcessingException {
+                Accept accept = salvarInterno(acceptRequestForm, foto, destinatario);
+                AcceptResponse acceptResponse = acceptMapper.toAcceptResponse(accept);
+                return acceptAssembler.toModel(acceptResponse);
+        }
+
+        @Auditable(entity = "Accept", clazz = Accept.class)
+        @Transactional
+        public Accept salvarInterno(String acceptRequestForm, MultipartFile foto, String destinatario)
                         throws JsonProcessingException {
 
                 // 1) Parse do request
@@ -149,7 +157,7 @@ public class CadastroAcceptService {
                                         "O aceite para o navio " + vessel.getNome() + " (IMO: " + accept.getImo()
                                                         + ") foi BLOQUEADO pois o navio está na blacklist.");
 
-                        return acceptAssembler.toModel(acceptMapper.toAcceptResponse(accept));
+                        return accept;
                 }
 
                 // 7) Upload (se tiver foto)
@@ -194,8 +202,7 @@ public class CadastroAcceptService {
                 // 9) Salva
                 accept = acceptRepository.save(accept);
 
-                AcceptResponse acceptResponse = acceptMapper.toAcceptResponse(accept);
-                return acceptAssembler.toModel(acceptResponse);
+                return accept;
         }
 
         public List<Berco> obterBercosCompativeis(Accept accept) {

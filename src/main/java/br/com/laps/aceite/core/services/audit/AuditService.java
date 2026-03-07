@@ -6,11 +6,14 @@ import br.com.laps.aceite.core.repositories.AuditLogRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuditService {
@@ -18,65 +21,51 @@ public class AuditService {
     private final AuditLogRepository repository;
     private final ObjectMapper objectMapper;
 
+    /**
+     * Registra uma entrada de auditoria de forma assíncrona.
+     * Nunca lança exceção para não impactar a transação principal.
+     *
+     * @param operation  tipo da operação (CREATE, UPDATE, DELETE)
+     * @param entity     nome da entidade
+     * @param entityId   id da entidade
+     * @param oldObject  estado anterior (já serializado em String JSON)
+     * @param newObject  novo estado (já serializado em String JSON)
+     * @param ipAddress  IP do cliente
+     * @param endpoint   URI do endpoint
+     * @param httpMethod método HTTP
+     * @param userAgent  User-Agent do cliente
+     * @param userEmail  email do usuário autenticado
+     */
+    @Async("auditExecutor")
     public void log(OperationType operation,
             String entity,
             Long entityId,
-            Object oldObject,
-            Object newObject,
-            HttpServletRequest request) {
-
+            String oldObject,
+            String newObject,
+            String ipAddress,
+            String endpoint,
+            String httpMethod,
+            String userAgent,
+            String userEmail) {
         try {
-            AuditLog log = new AuditLog();
+            AuditLog auditLog = new AuditLog();
+            auditLog.setTimestamp(Instant.now());
+            auditLog.setUserEmail(userEmail != null ? userEmail : "SYSTEM");
+            auditLog.setIpAddress(ipAddress);
+            auditLog.setEndpoint(endpoint);
+            auditLog.setHttpMethod(httpMethod);
+            auditLog.setUserAgent(userAgent);
+            auditLog.setEntityName(entity);
+            auditLog.setEntityId(entityId);
+            auditLog.setOperationType(operation);
+            auditLog.setOldData(oldObject);
+            auditLog.setNewData(newObject);
 
-            log.setTimestamp(Instant.now());
-
-            var auth = SecurityContextHolder.getContext().getAuthentication();
-            if (auth != null) {
-                log.setUserEmail(auth.getName());
-            } else {
-                log.setUserEmail("SYSTEM");
-            }
-
-            if (request != null) {
-                log.setIpAddress(getClientIp(request));
-                log.setEndpoint(request.getRequestURI());
-                log.setHttpMethod(request.getMethod());
-                log.setUserAgent(request.getHeader("User-Agent"));
-            }
-
-            log.setEntityName(entity);
-            log.setEntityId(entityId);
-            log.setOperationType(operation);
-
-            if (oldObject != null) {
-                log.setOldData(objectMapper.writeValueAsString(oldObject));
-            }
-
-            if (newObject != null) {
-                log.setNewData(objectMapper.writeValueAsString(newObject));
-            }
-
-            repository.save(log);
+            repository.save(auditLog);
 
         } catch (Exception e) {
-            // In a real scenario, we might want to log this error but not break the main
-            // transaction
-            // For now, following the user's design:
-            throw new RuntimeException("Erro ao registrar auditoria", e);
+            // Auditoria nunca deve derrubar o request principal
+            log.error("Erro ao registrar auditoria para entidade '{}' id={}: {}", entity, entityId, e.getMessage(), e);
         }
-    }
-
-    private String getClientIp(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        } else {
-            // X-Forwarded-For can contain multiple IPs, the first one is the client
-            int index = ip.indexOf(',');
-            if (index != -1) {
-                ip = ip.substring(0, index);
-            }
-        }
-        return ip;
     }
 }
