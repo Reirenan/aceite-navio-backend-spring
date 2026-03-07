@@ -11,7 +11,9 @@ import br.com.laps.aceite.core.services.auth.SecurityService;
 import br.com.laps.aceite.core.services.vetting.CadastroVettingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.CollectionModel;
@@ -36,6 +38,7 @@ public class VettingRestController {
     @GetMapping
     public CollectionModel<EntityModel<VettingResponse>> findAll(
             @PageableDefault(size = 15) Pageable pageable) {
+
         var user = securityService.getCurrentUser();
         var vettingsPage = vettingRepository.findAllByUserId(user.getId(), pageable)
                 .map(vettingMapper::toVettingResponse);
